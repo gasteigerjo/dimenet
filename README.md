@@ -1,7 +1,7 @@
 # [WIP] Directional Message Passing Neural Network (DimeNet)
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/klicperajo/dimenet/master/2dfilters_large_layer2.png">
+<img src="https://github.com/klicperajo/dimenet/blob/master/2dfilters_large_layer2.png?raw=true">
 </p>
 
 
