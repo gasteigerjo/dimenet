@@ -21,7 +21,7 @@ This repository primarily contains a demonstration of enhancing a graph convolut
 ## Architecture
 
 <p align="center">
-<img src="https://github.com/klicperajo/dimenet/blob/master/architecture.svg?raw=true&sanitize=true" width="600">
+<img src="https://github.com/klicperajo/dimenet/blob/master/architecture.svg?raw=true&sanitize=true">
 </p>
 
 ## Requirements
