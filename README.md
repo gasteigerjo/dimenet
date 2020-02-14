@@ -18,6 +18,12 @@ This repository is still **work in progress**, since we are currently migrating 
 <!-- ## Run the code
 This repository primarily contains a demonstration of enhancing a graph convolutional network (GCN) with graph diffusion convolution (GDC) in the notebook `gdc_demo.ipynb`. -->
 
+## Architecture
+
+<p align="center">
+<img src="https://github.com/klicperajo/dimenet/blob/master/architecture.svg?raw=true&sanitize=true" width="600">
+</p>
+
 ## Requirements
 The repository uses these packages:
 
