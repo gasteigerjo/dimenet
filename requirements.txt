@@ -1,0 +1,4 @@
+numpy
+scipy
+sympy
+tensorflow>=2.0
