@@ -7,7 +7,7 @@
 
 Reference implementation of the DimeNet model proposed in the paper:
 
-**[Directional Message Passing for Molecular Graphs](https://www.kdd.in.tum.de/gdc)**   
+**[Directional Message Passing for Molecular Graphs](https://www.daml.in.tum.de/dimenet)**   
 by Johannes Klicpera, Janek Groß, Stephan Günnemann   
 Published at ICLR 2020.
 
