@@ -46,7 +46,7 @@ class DimeNet(tf.keras.Model):
             self, num_features, num_blocks, num_bilinear, num_spherical,
             num_radial, envelope_exponent=5, cutoff=5.0, num_before_skip=1,
             num_after_skip=2, num_dense_output=3, num_targets=12,
-            activation=swish, seed=None, name='dimenet', **kwargs):
+            activation=swish, name='dimenet', **kwargs):
         super().__init__(name=name, **kwargs)
         self.num_blocks = num_blocks
 
@@ -58,20 +58,18 @@ class DimeNet(tf.keras.Model):
 
         # Embedding and first output block
         self.output_blocks = []
-        self.emb_block = EmbeddingBlock(num_features, activation=activation, seed=seed)
+        self.emb_block = EmbeddingBlock(num_features, activation=activation)
         self.output_blocks.append(
-            OutputBlock(num_features, num_dense_output, num_targets, activation=activation,
-                        seed=seed))
+            OutputBlock(num_features, num_dense_output, num_targets, activation=activation))
 
         # Interaction and remaining output blocks
         self.int_blocks = []
         for i in range(num_blocks):
             self.int_blocks.append(
                 InteractionBlock(num_features, num_bilinear, num_before_skip,
-                                 num_after_skip, activation=activation, seed=seed))
+                                 num_after_skip, activation=activation))
             self.output_blocks.append(
-                OutputBlock(num_features, num_dense_output, num_targets, activation=activation,
-                            seed=seed))
+                OutputBlock(num_features, num_dense_output, num_targets, activation=activation))
 
     def calculate_interatomic_distances(self, R, idx_i, idx_j):
         Ri = tf.gather(R, idx_i)

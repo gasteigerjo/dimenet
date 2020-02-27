@@ -7,13 +7,12 @@ from ..initializers import GlorotOrthogonal
 
 class InteractionBlock(layers.Layer):
     def __init__(self, num_features, num_bilinear, num_before_skip, num_after_skip,
-                 activation=None, seed=None, name='interaction', **kwargs):
+                 activation=None, name='interaction', **kwargs):
         super().__init__(name=name, **kwargs)
         self.num_features = num_features
         self.num_bilinear = num_bilinear
-        weight_init = GlorotOrthogonal(seed=seed)
-        self.bilin_initializer = tf.initializers.RandomNormal(
-            mean=0.0, stddev=2/num_features, seed=seed)
+        weight_init = GlorotOrthogonal()
+        self.bilin_initializer = tf.initializers.RandomNormal(mean=0.0, stddev=2 / num_features)
 
         # Transformations of Bessel and spherical basis representations
         self.dense_rbf = layers.Dense(num_features, use_bias=False, kernel_initializer=weight_init)

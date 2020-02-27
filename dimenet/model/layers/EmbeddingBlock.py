@@ -6,12 +6,12 @@ from ..initializers import GlorotOrthogonal
 
 
 class EmbeddingBlock(layers.Layer):
-    def __init__(self, num_features, activation=None, seed=None,
+    def __init__(self, num_features, activation=None,
                  name='embedding', **kwargs):
         super().__init__(name=name, **kwargs)
         self.num_features = num_features
-        self.weight_init = GlorotOrthogonal(seed=seed)
-        self.emb_init = tf.initializers.RandomUniform(minval=-np.sqrt(3), maxval=np.sqrt(3), seed=seed)
+        self.weight_init = GlorotOrthogonal()
+        self.emb_init = tf.initializers.RandomUniform(minval=-np.sqrt(3), maxval=np.sqrt(3))
 
         self.dense_rbf = layers.Dense(self.num_features, activation=activation, use_bias=True,
                                       kernel_initializer=self.weight_init)

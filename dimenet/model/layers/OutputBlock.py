@@ -6,9 +6,9 @@ from ..initializers import GlorotOrthogonal
 
 class OutputBlock(layers.Layer):
     def __init__(self, num_features, num_dense, num_targets=12,
-                 activation=None, seed=None, name='output', **kwargs):
+                 activation=None, name='output', **kwargs):
         super().__init__(name=name, **kwargs)
-        weight_init = GlorotOrthogonal(seed=seed)
+        weight_init = GlorotOrthogonal()
 
         self.dense_rbf = layers.Dense(num_features, activation=activation, use_bias=False,
                                       kernel_initializer=weight_init)

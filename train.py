@@ -107,7 +107,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
                         num_before_skip=num_before_skip,
                         num_after_skip=num_after_skip,
                         num_dense_output=num_dense_output,
-                        activation=swish, seed=None)
+                        activation=swish)
 
         logging.info("Prepare training")
         # Initialize data queues for efficient training
