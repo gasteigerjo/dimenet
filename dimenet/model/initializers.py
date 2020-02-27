@@ -13,6 +13,7 @@ class GlorotOrthogonal(tf.initializers.Initializer):
     """
 
     def __init__(self, scale=2.0, seed=None):
+        super().__init__()
         self.orth_init = tf.initializers.Orthogonal(seed=seed)
         self.scale = scale
 
