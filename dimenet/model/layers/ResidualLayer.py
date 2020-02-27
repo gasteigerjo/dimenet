@@ -3,7 +3,7 @@ from tensorflow.keras import layers
 
 class ResidualLayer(layers.Layer):
     def __init__(self, units, activation=None, use_bias=True,
-                 kernel_initializer=None, bias_initializer=None,
+                 kernel_initializer='glorot_uniform', bias_initializer='zeros',
                  name='residual', **kwargs):
         super().__init__(name=name, **kwargs)
         self.dense_1 = layers.Dense(units, activation=activation, use_bias=use_bias,
