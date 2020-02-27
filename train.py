@@ -109,6 +109,27 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
                         num_dense_output=num_dense_output,
                         activation=swish)
 
+        @tf.function(
+                input_signature=[tf.TensorSpec(shape=[None], dtype=tf.int32),
+                                 tf.TensorSpec(shape=[None, 3], dtype=tf.float32),
+                                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                                 tf.TensorSpec(shape=[], dtype=tf.bool)]
+        )
+        def predict(Z, R, batch_seg, idnb_i, idnb_j,
+                    id_expand_kj, id_reduce_ji,
+                    id3dnb_i, id3dnb_j, id3dnb_k,
+                    training):
+            return model([Z, R, batch_seg, idnb_i, idnb_j,
+                          id_expand_kj, id_reduce_ji,
+                          id3dnb_i, id3dnb_j, id3dnb_k], training=training)
+
         logging.info("Prepare training")
         # Initialize data queues for efficient training
         train['queue'] = DataQueue(
@@ -214,7 +235,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             # Perform training step
             inputs, outputs = get_batch(train['queue'])
             with tf.GradientTape() as tape:
-                preds = model(inputs, training=True)
+                preds = predict(*inputs, training=tf.constant(True))
                 mean_mae, mae = calculate_mae(preds, outputs, active_target_idx)
                 loss = mean_mae
             trainer.update_weights(loss, tape)
@@ -249,7 +270,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
                     # Compute averages
                     for i in range(int(np.ceil(num_valid / batch_size))):
                         inputs, outputs = get_batch(validation['queue'])
-                        preds = model(inputs)
+                        preds = predict(*inputs, training=tf.constant(False))
                         mean_mae, mae = calculate_mae(preds, outputs, active_target_idx)
                         loss = mean_mae
 

@@ -2,3 +2,4 @@ numpy
 scipy
 sympy
 tensorflow>=2.0
+seml

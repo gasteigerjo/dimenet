@@ -17,8 +17,7 @@ class Trainer:
             self.learning_rate = tf.optimizers.schedules.ExponentialDecay(
                 learning_rate, decay_steps, decay_rate)
 
-        self.optimizer = tf.optimizers.Adam(
-            learning_rate=self.learning_rate, amsgrad=True)
+        self.optimizer = tf.optimizers.Adam(learning_rate=self.learning_rate, amsgrad=True)
 
         self.ema = tf.train.ExponentialMovingAverage(self.ema_decay)
 
