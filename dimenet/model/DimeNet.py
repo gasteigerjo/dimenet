@@ -85,7 +85,7 @@ class DimeNet(tf.keras.Model):
         Rk = tf.gather(R, id3_k)
         R1 = Rj-Ri
         R2 = Rk-Ri
-        x = tf.einsum("ik,ik->i", R1, R2)
+        x = tf.reduce_sum(R1 * R2, axis=-1)
         y = tf.linalg.cross(R1, R2)
         y = tf.norm(y, axis=-1)
         angle = tf.math.atan2(y, x)

@@ -13,7 +13,7 @@ Published at ICLR 2020.
 
 ## WORK IN PROGRESS
 
-This repository is still **work in progress**, since we are currently migrating the model to Tensorflow 2.0.
+This repository is still **work in progress**, since we are currently migrating the model to Tensorflow 2. Current state: The predictions are the same, but for some reason the model is 3x slower than with TF1.
 
 <!-- ## Run the code
 This repository primarily contains a demonstration of enhancing a graph convolutional network (GCN) with graph diffusion convolution (GDC) in the notebook `gdc_demo.ipynb`. -->
