@@ -91,6 +91,18 @@ class DimeNet(tf.keras.Model):
         angle = tf.math.atan2(y, x)
         return angle
 
+    @tf.function(input_signature=[[
+            tf.TensorSpec(shape=[None], dtype=tf.int32),
+            tf.TensorSpec(shape=[None, 3], dtype=tf.float32),
+            tf.TensorSpec(shape=[None], dtype=tf.int32),
+            tf.TensorSpec(shape=[None], dtype=tf.int32),
+            tf.TensorSpec(shape=[None], dtype=tf.int32),
+            tf.TensorSpec(shape=[None], dtype=tf.int32),
+            tf.TensorSpec(shape=[None], dtype=tf.int32),
+            tf.TensorSpec(shape=[None], dtype=tf.int32),
+            tf.TensorSpec(shape=[None], dtype=tf.int32),
+            tf.TensorSpec(shape=[None], dtype=tf.int32)
+    ]])
     def call(self, inputs):
         [Z, R, batch_seg, idnb_i, idnb_j, id_expand_kj, id_reduce_ji,
          id3dnb_i, id3dnb_j, id3dnb_k] = inputs
