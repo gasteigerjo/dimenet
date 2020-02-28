@@ -6,8 +6,9 @@ import logging
 import string
 import random
 from datetime import datetime
-from dimenet.model.DimeNet import DimeNet
+from functools import partial
 
+from dimenet.model.DimeNet import DimeNet
 from dimenet.model.activations import swish
 from dimenet.training.Trainer import Trainer
 from dimenet.training.DataContainer import DataContainer, target_keys, index_keys
@@ -118,9 +119,6 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             data_provider.get_batch_fn('val'),
             capacity=int(np.ceil(num_valid / batch_size)))
 
-        target_dict = {k: i for i, k in enumerate(target_keys)}
-        active_target_idx = [target_dict[k] for k in targets]
-
         # Initialize trainer
         trainer = Trainer(model, learning_rate, warmup_steps,
                           decay_steps, decay_rate,
@@ -139,14 +137,18 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             best_res['step'] = 0
             np.savez(best_loss_file, **best_res)
 
-        def calculate_mae(val1, val2, active_idx):
+        def calculate_mae_idx(val1, val2, active_idx):
             """Calculate mean absolute error between two values."""
-            val1 = tf.gather(val1, active_idx, axis=-1)
-            val2 = tf.gather(tf.transpose(val2), active_idx, axis=-1)
+            val1 = tf.gather(tf.transpose(val1), active_idx, axis=-1)
+            val2 = tf.gather(val2, active_idx, axis=-1)
             delta = tf.abs(val1 - val2)
             mae = tf.reduce_mean(delta, axis=0)
             mean_mae = tf.reduce_mean(mae)
             return mean_mae, mae
+
+        target_dict = {k: i for i, k in enumerate(target_keys)}
+        active_target_idx = [target_dict[k] for k in targets]
+        calculate_mae = partial(calculate_mae_idx, active_idx=active_target_idx)
 
         def update_average(avg, tmp, num):
             """Incrementally update an average."""
@@ -215,7 +217,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             inputs, outputs = get_batch(train['queue'])
             with tf.GradientTape() as tape:
                 preds = model(inputs, training=True)
-                mean_mae, mae = calculate_mae(preds, outputs, active_target_idx)
+                mean_mae, mae = calculate_mae(outputs, preds)
                 loss = mean_mae
             trainer.update_weights(loss, tape)
 
@@ -250,7 +252,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
                     for i in range(int(np.ceil(num_valid / batch_size))):
                         inputs, outputs = get_batch(validation['queue'])
                         preds = model(inputs, training=False)
-                        mean_mae, mae = calculate_mae(preds, outputs, active_target_idx)
+                        mean_mae, mae = calculate_mae(outputs, preds)
                         loss = mean_mae
 
                         validation['num'] += 1
