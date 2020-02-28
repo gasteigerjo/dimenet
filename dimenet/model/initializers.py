@@ -1,4 +1,3 @@
-import numpy as np
 import tensorflow as tf
 
 
@@ -20,5 +19,5 @@ class GlorotOrthogonal(tf.initializers.Initializer):
     def __call__(self, shape, dtype=tf.float32):
         assert len(shape) == 2
         W = self.orth_init(shape, dtype)
-        W *= np.sqrt(self.scale / ((shape[0] + shape[1]) * tf.math.reduce_variance(W)))
+        W *= tf.sqrt(self.scale / ((shape[0] + shape[1]) * tf.math.reduce_variance(W)))
         return W
