@@ -191,6 +191,26 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
 
         steps_per_epoch = int(np.ceil(num_train / batch_size))
 
+        @tf.function(input_signature=[
+                [tf.TensorSpec(shape=[None], dtype=tf.int32),
+                 tf.TensorSpec(shape=[None, 3], dtype=tf.float32),
+                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                 tf.TensorSpec(shape=[None], dtype=tf.int32),
+                 tf.TensorSpec(shape=[None], dtype=tf.int32)],
+                tf.TensorSpec(shape=[None, len(targets)], dtype=tf.float32)])
+        def train_one_batch(inputs, outputs):
+            with tf.GradientTape() as tape:
+                preds = model(inputs, training=True)
+                mean_mae, mae = calculate_mae(outputs, preds)
+                loss = mean_mae
+            trainer.update_weights(loss, tape)
+            return loss, mean_mae, mae
+
         # Training loop
         logging.info("Start training")
         while not coord.should_stop():
@@ -207,11 +227,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
 
             # Perform training step
             inputs, outputs = get_batch(train['queue'])
-            with tf.GradientTape() as tape:
-                preds = model(inputs, training=True)
-                mean_mae, mae = calculate_mae(outputs, preds)
-                loss = mean_mae
-            trainer.update_weights(loss, tape)
+            loss, mean_mae, mae = train_one_batch(inputs, outputs)
 
             # Update averages
             train['num'] += 1
