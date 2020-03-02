@@ -1,4 +1,7 @@
 import numpy as np
+import tensorflow as tf
+from collections import OrderedDict
+from .DataContainer import index_keys
 
 
 class DataProvider:
@@ -25,6 +28,26 @@ class DataProvider:
         # Index for retrieving batches
         self.idx_in_epoch = {'train': 0, 'val': 0, 'test': 0}
 
+        # dtypes of dataset values
+        self.dtypes_dict = {}
+        self.dtypes_dict['id'] = tf.int32
+        self.dtypes_dict['N'] = tf.int32
+        self.dtypes_dict['Z'] = tf.int32
+        self.dtypes_dict['R'] = tf.float32
+        self.dtypes_dict['targets'] = tf.float32
+        for key in index_keys:
+            self.dtypes_dict[key] = tf.int32
+
+        # Shapes of dataset values
+        self.shapes_dict = {}
+        self.shapes_dict['id'] = [None]
+        self.shapes_dict['N'] = [None]
+        self.shapes_dict['Z'] = [None]
+        self.shapes_dict['R'] = [None, 3]
+        self.shapes_dict['targets'] = [None, len(data_container.target_keys)]
+        for key in index_keys:
+            self.shapes_dict[key] = [None]
+
     def shuffle_train(self):
         """Shuffle the training data"""
         self.idx['train'] = self._random_state.permutation(self.idx['train'])
@@ -50,5 +73,11 @@ class DataProvider:
 
         return self.data_container[self.idx[split][start:end]]
 
-    def get_batch_fn(self, split):
-        return lambda: self.get_batch(split)
+    def get_dataset(self, split):
+        def generator():
+            while True:
+                yield self.get_batch(split)
+        return tf.data.Dataset.from_generator(
+                generator,
+                output_types=self.dtypes_dict,
+                output_shapes=self.shapes_dict)

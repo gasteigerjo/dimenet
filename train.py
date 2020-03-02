@@ -13,7 +13,6 @@ from dimenet.model.activations import swish
 from dimenet.training.Trainer import Trainer
 from dimenet.training.DataContainer import DataContainer, index_keys
 from dimenet.training.DataProvider import DataProvider
-from dimenet.training.DataQueue import DataQueue
 
 from sacred import Experiment
 
@@ -101,6 +100,10 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
         train = {}
         validation = {}
 
+        # Initialize datasets
+        train['dataset'] = data_provider.get_dataset('train').prefetch(10)
+        validation['dataset'] = data_provider.get_dataset('val').prefetch(20)
+
         logging.info("Initialize model")
         model = DimeNet(num_features=num_features, num_blocks=num_blocks, num_bilinear=num_bilinear,
                         num_spherical=num_spherical, num_radial=num_radial,
@@ -111,14 +114,6 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
                         activation=swish)
 
         logging.info("Prepare training")
-        # Initialize data queues for efficient training
-        train['queue'] = DataQueue(
-            data_provider.get_batch_fn('train'),
-            ntargets=len(targets), capacity=1000)
-        validation['queue'] = DataQueue(
-            data_provider.get_batch_fn('val'),
-            ntargets=len(targets), capacity=int(np.ceil(num_valid / batch_size)))
-
         # Initialize trainer
         trainer = Trainer(model, learning_rate, warmup_steps,
                           decay_steps, decay_rate,
@@ -163,19 +158,6 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             ex.current_run.info['mean_log_mae_train'] = []
             ex.current_run.info['mean_log_mae_best'] = []
 
-        # Start data queues
-        coord = tf.train.Coordinator()
-        train['queue'].create_thread(coord)
-        if num_valid > 0:
-            validation['queue'].create_thread(coord)
-
-        def get_batch(queue):
-            """Get batch from queue and transform it to inputs and outputs."""
-            batch = train['queue'].dequeue()
-            input_keys = ['Z', 'R'] + index_keys
-            batch_inputs = [batch[k] for k in input_keys]
-            return batch_inputs, batch['targets']
-
         # Set up checkpointing
         ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=trainer.optimizer, model=model)
         manager = tf.train.CheckpointManager(ckpt, step_ckpt_folder, max_to_keep=3)
@@ -190,6 +172,13 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             step = 0
 
         steps_per_epoch = int(np.ceil(num_train / batch_size))
+
+        def get_batch(dataset):
+            """Get batch from dataset and transform it to inputs and outputs."""
+            batch = next(iter(dataset))
+            input_keys = ['Z', 'R'] + index_keys
+            batch_inputs = [batch[k] for k in input_keys]
+            return batch_inputs, batch['targets']
 
         @tf.function(input_signature=[
                 [tf.TensorSpec(shape=[None], dtype=tf.int32),
@@ -213,12 +202,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
 
         # Training loop
         logging.info("Start training")
-        while not coord.should_stop():
-            # Finish training when maximum number of iterations is reached
-            if step > max_steps:
-                coord.request_stop()
-                break
-
+        while step <= max_steps:
             # Update step number
             step += 1
             epoch = step // steps_per_epoch
@@ -226,7 +210,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             tf.summary.experimental.set_step(step)
 
             # Perform training step
-            inputs, outputs = get_batch(train['queue'])
+            inputs, outputs = get_batch(train['dataset'])
             loss, mean_mae, mae = train_one_batch(inputs, outputs)
 
             # Update averages
@@ -258,7 +242,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
 
                     # Compute averages
                     for i in range(int(np.ceil(num_valid / batch_size))):
-                        inputs, outputs = get_batch(validation['queue'])
+                        inputs, outputs = get_batch(validation['dataset'])
                         preds = model(inputs, training=False)
                         mean_mae, mae = calculate_mae(outputs, preds)
                         loss = mean_mae
