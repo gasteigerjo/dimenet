@@ -28,9 +28,12 @@ class Trainer:
 
     def update_weights(self, loss, gradient_tape):
         grads = gradient_tape.gradient(loss, self.model.trainable_weights)
-        tf.summary.scalar("global_gradient_norm", tf.linalg.global_norm(grads))
+
+        global_norm = tf.linalg.global_norm(grads)
+        tf.summary.scalar("global_gradient_norm", global_norm)
         if self.max_grad_norm is not None:
-            grads, _ = tf.clip_by_global_norm(grads, self.max_grad_norm)
+            grads, _ = tf.clip_by_global_norm(grads, self.max_grad_norm, use_norm=global_norm)
+
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_weights))
 
         self.ema.apply(self.model.trainable_weights)
