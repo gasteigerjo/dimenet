@@ -19,6 +19,8 @@ class DataContainer:
             else:
                 setattr(self, "_" + key, None)
 
+        assert self._R is not None
+
     def _bmat_fast(self, mats):
         new_data = np.concatenate([mat.data for mat in mats])
 
@@ -41,36 +43,33 @@ class DataContainer:
             idx = [idx]
 
         data = {}
-        for key in feature_keys + target_keys + index_keys:
-            data[key] = []
+        for key in target_keys:
+            if getattr(self, "_" + key) is not None:
+                data[key] = getattr(self, "_" + key)[idx]
+            else:
+                data[key] = np.full(len(idx), np.nan, dtype=np.float32)
+        if self._N is None:
+            data['N'] = np.zeros(len(idx), dtype=np.int32)
+        else:
+            data['N'] = self._N[idx]
+        data['batch_seg'] = np.repeat(np.arange(len(idx), dtype=np.int32), data['N'])
         adj_matrices = []
 
-        for k, i in enumerate(idx):
-            n = self._N[i]  # number of atoms
+        data['Z'] = np.zeros(np.sum(data['N']), dtype=np.int32)
+        data['R'] = np.zeros([np.sum(data['N']), 3], dtype=np.float32)
 
-            # Append data
-            for key in target_keys + ['id']:
-                if getattr(self, "_" + key) is not None:
-                    data[key].append(getattr(self, "_" + key)[i])
-                else:
-                    data[key].append(np.nan)
+        nend = 0
+        for k, i in enumerate(idx):
+            n = data['N'][k]  # number of atoms
+            nstart = nend
+            nend = nstart + n
 
             if self._Z is not None:
-                data['Z'].extend(self._Z[i, :n].tolist())
-            else:
-                data['Z'].append(0)
-            if self._R is not None:
-                data['R'].extend(self._R[i, :n, :].tolist())
-            else:
-                data['R'].extend([[np.nan, np.nan, np.nan]])
-            if self._N is not None:
-                data['N'].append(self._N[i])
-            else:
-                data['N'].append(0)
+                data['Z'][nstart:nend] = self._Z[i, :n]
 
-            data['batch_seg'].extend([k] * n)
+            R = self._R[i, :n]
+            data['R'][nstart:nend] = R
 
-            R = self._R[i, :n, :]
             Dij = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
             adj_matrices.append(sp.csr_matrix(Dij <= self._cutoff))
             adj_matrices[-1] -= sp.eye(n, dtype=np.bool)
