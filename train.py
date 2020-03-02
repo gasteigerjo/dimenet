@@ -11,7 +11,7 @@ from functools import partial
 from dimenet.model.DimeNet import DimeNet
 from dimenet.model.activations import swish
 from dimenet.training.Trainer import Trainer
-from dimenet.training.DataContainer import DataContainer, target_keys, index_keys
+from dimenet.training.DataContainer import DataContainer, index_keys
 from dimenet.training.DataProvider import DataProvider
 from dimenet.training.DataQueue import DataQueue
 
@@ -93,7 +93,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
 
     with summary_writer.as_default():
         logging.info("Load dataset")
-        data_container = DataContainer(dataset, cutoff=cutoff)
+        data_container = DataContainer(dataset, cutoff=cutoff, target_keys=targets)
 
         # Initialize DataProvider (splits dataset into training, validation and test set based on data_seed)
         data_provider = DataProvider(data_container, num_train, num_valid, batch_size,
@@ -114,10 +114,10 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
         # Initialize data queues for efficient training
         train['queue'] = DataQueue(
             data_provider.get_batch_fn('train'),
-            capacity=1000)
+            ntargets=len(targets), capacity=1000)
         validation['queue'] = DataQueue(
             data_provider.get_batch_fn('val'),
-            capacity=int(np.ceil(num_valid / batch_size)))
+            ntargets=len(targets), capacity=int(np.ceil(num_valid / batch_size)))
 
         # Initialize trainer
         trainer = Trainer(model, learning_rate, warmup_steps,
@@ -137,18 +137,12 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             best_res['step'] = 0
             np.savez(best_loss_file, **best_res)
 
-        def calculate_mae_idx(val1, val2, active_idx):
+        def calculate_mae(targets, preds):
             """Calculate mean absolute error between two values."""
-            val1 = tf.gather(tf.transpose(val1), active_idx, axis=-1)
-            val2 = tf.gather(val2, active_idx, axis=-1)
-            delta = tf.abs(val1 - val2)
+            delta = tf.abs(targets - preds)
             mae = tf.reduce_mean(delta, axis=0)
             mean_mae = tf.reduce_mean(mae)
             return mean_mae, mae
-
-        target_dict = {k: i for i, k in enumerate(target_keys)}
-        active_target_idx = [target_dict[k] for k in targets]
-        calculate_mae = partial(calculate_mae_idx, active_idx=active_target_idx)
 
         def update_average(avg, tmp, num):
             """Incrementally update an average."""
@@ -180,9 +174,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             batch = train['queue'].dequeue()
             input_keys = ['Z', 'R'] + index_keys
             batch_inputs = [batch[k] for k in input_keys]
-            batch_outputs_list = [batch[k] for k in target_keys]
-            batch_outputs = tf.stack(batch_outputs_list)
-            return batch_inputs, batch_outputs
+            return batch_inputs, batch['targets']
 
         # Set up checkpointing
         ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=trainer.optimizer, model=model)

@@ -1,31 +1,29 @@
 import tensorflow as tf
 import threading
 from collections import OrderedDict
-from .DataContainer import target_keys, index_keys
+from .DataContainer import index_keys
 
 
 class DataQueue:
-    def __init__(self, get_batch, capacity=5000, dtype=tf.float32):
+    def __init__(self, get_batch, ntargets=1, capacity=5000, dtype=tf.float32):
         self.get_batch = get_batch
         self._is_running = False
 
         self.dtypes_dict = OrderedDict()
         self.dtypes_dict['id'] = tf.int32
+        self.dtypes_dict['N'] = tf.int32
         self.dtypes_dict['Z'] = tf.int32
         self.dtypes_dict['R'] = tf.float32
-        self.dtypes_dict['N'] = tf.int32
-        for key in target_keys:
-            self.dtypes_dict[key] = tf.float32
+        self.dtypes_dict['targets'] = tf.float32
         for key in index_keys:
             self.dtypes_dict[key] = tf.int32
 
         shapes_dict = OrderedDict()
         shapes_dict['id'] = [None]
+        shapes_dict['N'] = [None]
         shapes_dict['Z'] = [None]
         shapes_dict['R'] = [None, 3]
-        shapes_dict['N'] = [None]
-        for key in target_keys:
-            shapes_dict[key] = [None]
+        shapes_dict['targets'] = [None, ntargets]
         for key in index_keys:
             shapes_dict[key] = [None]
 

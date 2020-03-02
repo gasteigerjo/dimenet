@@ -2,22 +2,22 @@ import numpy as np
 import scipy.sparse as sp
 
 
-feature_keys = ['id', 'Z', 'R', 'N']
-target_keys = ['mu', 'alpha', 'homo', 'lumo',
-               'gap', 'r2', 'zpve', 'U0', 'U', 'H', 'G', 'Cv']
+feature_keys = ['id', 'N', 'Z', 'R']
 index_keys = ["batch_seg", "idnb_i", "idnb_j", "id_expand_kj",
               "id_reduce_ji", "id3dnb_i", "id3dnb_j", "id3dnb_k"]
 
 
 class DataContainer:
-    def __init__(self, filename, cutoff):
+    def __init__(self, filename, cutoff, target_keys):
         data_dict = np.load(filename)
-        self._cutoff = cutoff
-        for key in feature_keys + target_keys:
+        self.cutoff = cutoff
+        self.target_keys = target_keys
+        for key in feature_keys:
             if key in data_dict:
                 setattr(self, "_" + key, data_dict[key])
             else:
                 setattr(self, "_" + key, None)
+        self._targets = np.stack([data_dict[key] for key in self.target_keys], axis=1)
 
         assert self._R is not None
 
@@ -43,11 +43,8 @@ class DataContainer:
             idx = [idx]
 
         data = {}
-        for key in target_keys:
-            if getattr(self, "_" + key) is not None:
-                data[key] = getattr(self, "_" + key)[idx]
-            else:
-                data[key] = np.full(len(idx), np.nan, dtype=np.float32)
+        data['targets'] = self._targets[idx]
+        data['id'] = self._id[idx]
         if self._N is None:
             data['N'] = np.zeros(len(idx), dtype=np.int32)
         else:
@@ -71,7 +68,7 @@ class DataContainer:
             data['R'][nstart:nend] = R
 
             Dij = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
-            adj_matrices.append(sp.csr_matrix(Dij <= self._cutoff))
+            adj_matrices.append(sp.csr_matrix(Dij <= self.cutoff))
             adj_matrices[-1] -= sp.eye(n, dtype=np.bool)
 
         # Entry x,y is edge x<-y (!)
