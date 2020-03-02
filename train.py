@@ -41,7 +41,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
         data_seed, max_steps, learning_rate, ema_decay,
         decay_steps, warmup_steps, decay_rate, batch_size,
         summary_interval, validation_interval, save_interval, restart, targets,
-        comment):
+        comment, logdir):
 
     # Used for creating a "unique" id for a run (almost impossible to generate the same twice)
     def id_generator(size=8, chars=string.ascii_uppercase + string.ascii_lowercase + string.digits):
@@ -51,7 +51,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
     # A unique directory name is created for this run based on the input
 
     if restart is None:
-        directory = (datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + id_generator()
+        directory = (logdir + "/" + datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + id_generator()
                      + "_" + os.path.basename(dataset)
                      + "_f" + str(num_features)
                      + "_bi" + str(num_bilinear)
