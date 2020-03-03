@@ -1,25 +1,27 @@
 import numpy as np
 import scipy.sparse as sp
 
-
-feature_keys = ['id', 'N', 'Z', 'R']
 index_keys = ["batch_seg", "idnb_i", "idnb_j", "id_expand_kj",
               "id_reduce_ji", "id3dnb_i", "id3dnb_j", "id3dnb_k"]
 
 
 class DataContainer:
     def __init__(self, filename, cutoff, target_keys):
-        data_dict = np.load(filename)
+        data_dict = np.load(filename, allow_pickle=True)
         self.cutoff = cutoff
         self.target_keys = target_keys
-        for key in feature_keys:
+        for key in ['id', 'N', 'Z', 'R']:
             if key in data_dict:
-                setattr(self, "_" + key, data_dict[key])
+                setattr(self, key, data_dict[key])
             else:
-                setattr(self, "_" + key, None)
-        self._targets = np.stack([data_dict[key] for key in self.target_keys], axis=1)
+                setattr(self, key, None)
+        self.targets = np.stack([data_dict[key] for key in self.target_keys], axis=1)
 
-        assert self._R is not None
+        if self.N is None:
+            self.N = np.zeros(len(self.targets), dtype=np.int32)
+        self.N_cumsum = np.concatenate([[0], np.cumsum(self.N)])
+
+        assert self.R is not None
 
     def _bmat_fast(self, mats):
         new_data = np.concatenate([mat.data for mat in mats])
@@ -36,19 +38,16 @@ class DataContainer:
         return sp.csr_matrix((new_data, new_indices, new_indptr))
 
     def __len__(self):
-        return self._R.shape[0]
+        return self.targets.shape[0]
 
     def __getitem__(self, idx):
         if type(idx) is int or type(idx) is np.int64:
             idx = [idx]
 
         data = {}
-        data['targets'] = self._targets[idx]
-        data['id'] = self._id[idx]
-        if self._N is None:
-            data['N'] = np.zeros(len(idx), dtype=np.int32)
-        else:
-            data['N'] = self._N[idx]
+        data['targets'] = self.targets[idx]
+        data['id'] = self.id[idx]
+        data['N'] = self.N[idx]
         data['batch_seg'] = np.repeat(np.arange(len(idx), dtype=np.int32), data['N'])
         adj_matrices = []
 
@@ -61,10 +60,10 @@ class DataContainer:
             nstart = nend
             nend = nstart + n
 
-            if self._Z is not None:
-                data['Z'][nstart:nend] = self._Z[i, :n]
+            if self.Z is not None:
+                data['Z'][nstart:nend] = self.Z[self.N_cumsum[i]:self.N_cumsum[i + 1]]
 
-            R = self._R[i, :n]
+            R = self.R[self.N_cumsum[i]:self.N_cumsum[i + 1]]
             data['R'][nstart:nend] = R
 
             Dij = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
