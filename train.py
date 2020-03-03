@@ -7,11 +7,11 @@ import string
 import random
 from datetime import datetime
 
-from dimenet.model.DimeNet import DimeNet
+from dimenet.model.dimenet import DimeNet
 from dimenet.model.activations import swish
-from dimenet.training.Trainer import Trainer
-from dimenet.training.DataContainer import DataContainer
-from dimenet.training.DataProvider import DataProvider
+from dimenet.training.trainer import Trainer
+from dimenet.training.data_container import DataContainer
+from dimenet.training.data_provider import DataProvider
 
 from sacred import Experiment
 

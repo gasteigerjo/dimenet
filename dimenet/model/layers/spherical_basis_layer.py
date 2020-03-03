@@ -30,6 +30,7 @@ class SphericalBasisLayer(layers.Layer):
             for j in range(num_radial):
                 self.funcs.append(sym.lambdify(
                     [x, theta], self.sph_harm_formulas[i][0] * self.bessel_formulas[i][j], 'tensorflow'))
+
     def call(self, inputs):
         d, Angles, id_expand_kj = inputs
 
@@ -43,3 +44,4 @@ class SphericalBasisLayer(layers.Layer):
         d_scaled = tf.expand_dims(d_scaled, -1)
 
         d_cutoff = self.envelope(d_scaled)
+        return d_cutoff * rbf

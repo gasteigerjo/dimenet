@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from .DataContainer import index_keys
+from .data_container import index_keys
 
 
 class DataProvider:

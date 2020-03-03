@@ -1,10 +1,10 @@
 import tensorflow as tf
 
-from .layers.EmbeddingBlock import EmbeddingBlock
-from .layers.BesselBasisLayer import BesselBasisLayer
-from .layers.SphericalBasisLayer import SphericalBasisLayer
-from .layers.InteractionBlock import InteractionBlock
-from .layers.OutputBlock import OutputBlock
+from .layers.embedding_block import EmbeddingBlock
+from .layers.bessel_basis_layer import BesselBasisLayer
+from .layers.spherical_basis_layer import SphericalBasisLayer
+from .layers.interaction_block import InteractionBlock
+from .layers.output_block import OutputBlock
 from .activations import swish
 
 
