@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow_addons as tfa
 from .schedules import LinearWarmupExponentialDecay
 
 
@@ -17,13 +18,11 @@ class Trainer:
             self.learning_rate = tf.optimizers.schedules.ExponentialDecay(
                 learning_rate, decay_steps, decay_rate)
 
-        self.optimizer = tf.optimizers.Adam(learning_rate=self.learning_rate, amsgrad=True)
+        opt = tf.optimizers.Adam(learning_rate=self.learning_rate, amsgrad=True)
+        self.optimizer = tfa.optimizers.MovingAverage(opt, average_decay=self.ema_decay)
 
-        self.ema = tf.train.ExponentialMovingAverage(self.ema_decay)
-
-        # Make backup variables
-        self.backup_vars = [tf.get_variable(var.op.name, dtype=var.value().dtype, trainable=False,
-                                            initializer=var.initialized_value())
+        # Initialize backup variables
+        self.backup_vars = [tf.Variable(var, dtype=var.dtype, trainable=False)
                             for var in self.model.trainable_weights]
 
     def update_weights(self, loss, gradient_tape):
@@ -36,11 +35,8 @@ class Trainer:
 
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_weights))
 
-        self.ema.apply(self.model.trainable_weights)
-
     def load_averaged_variables(self):
-        for var in self.model.trainable_weights:
-            var.assign(self.ema.average(var))
+        self.optimizer.assign_average_vars(self.model.trainable_weights)
 
     def save_variable_backups(self):
         for var, bck in zip(self.model.trainable_weights, self.backup_vars):
