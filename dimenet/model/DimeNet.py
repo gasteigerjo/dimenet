@@ -75,7 +75,7 @@ class DimeNet(tf.keras.Model):
         Ri = tf.gather(R, idx_i)
         Rj = tf.gather(R, idx_j)
         # ReLU prevents negative numbers in sqrt
-        Dij = tf.sqrt(tf.nn.relu(tf.reduce_sum((Ri-Rj)**2, -1)))
+        Dij = tf.sqrt(tf.nn.relu(tf.reduce_sum((Ri - Rj)**2, -1)))
         return Dij
 
     def calculate_neighbor_angles(self, R, id3_i, id3_j, id3_k):
@@ -83,29 +83,36 @@ class DimeNet(tf.keras.Model):
         Ri = tf.gather(R, id3_i)
         Rj = tf.gather(R, id3_j)
         Rk = tf.gather(R, id3_k)
-        R1 = Rj-Ri
-        R2 = Rk-Ri
+        R1 = Rj - Ri
+        R2 = Rk - Ri
         x = tf.reduce_sum(R1 * R2, axis=-1)
         y = tf.linalg.cross(R1, R2)
         y = tf.norm(y, axis=-1)
         angle = tf.math.atan2(y, x)
         return angle
 
-    @tf.function(input_signature=[[
-            tf.TensorSpec(shape=[None], dtype=tf.int32),
-            tf.TensorSpec(shape=[None, 3], dtype=tf.float32),
-            tf.TensorSpec(shape=[None], dtype=tf.int32),
-            tf.TensorSpec(shape=[None], dtype=tf.int32),
-            tf.TensorSpec(shape=[None], dtype=tf.int32),
-            tf.TensorSpec(shape=[None], dtype=tf.int32),
-            tf.TensorSpec(shape=[None], dtype=tf.int32),
-            tf.TensorSpec(shape=[None], dtype=tf.int32),
-            tf.TensorSpec(shape=[None], dtype=tf.int32),
-            tf.TensorSpec(shape=[None], dtype=tf.int32)
-    ]])
+    @tf.function(input_signature=[{
+                'Z': tf.TensorSpec(name='Z', shape=[None], dtype=tf.int32),
+                'R': tf.TensorSpec(name='R', shape=[None, 3], dtype=tf.float32),
+                'batch_seg': tf.TensorSpec(name='batch_seg', shape=[None], dtype=tf.int32),
+                'idnb_i': tf.TensorSpec(name='idnb_i', shape=[None], dtype=tf.int32),
+                'idnb_j': tf.TensorSpec(name='idnb_j', shape=[None], dtype=tf.int32),
+                'id_expand_kj': tf.TensorSpec(name='id_expand_kj', shape=[None], dtype=tf.int32),
+                'id_reduce_ji': tf.TensorSpec(name='id_reduce_ji', shape=[None], dtype=tf.int32),
+                'id3dnb_i': tf.TensorSpec(name='id3dnb_i', shape=[None], dtype=tf.int32),
+                'id3dnb_j': tf.TensorSpec(name='id3dnb_j', shape=[None], dtype=tf.int32),
+                'id3dnb_k': tf.TensorSpec(name='id3dnb_k', shape=[None], dtype=tf.int32)
+                }])
     def call(self, inputs):
-        [Z, R, batch_seg, idnb_i, idnb_j, id_expand_kj, id_reduce_ji,
-         id3dnb_i, id3dnb_j, id3dnb_k] = inputs
+        (Z, R, batch_seg,
+         idnb_i, idnb_j,
+         id_expand_kj, id_reduce_ji,
+         id3dnb_i, id3dnb_j, id3dnb_k) = (
+                inputs['Z'], inputs['R'], inputs['batch_seg'],
+                inputs['idnb_i'], inputs['idnb_j'],
+                inputs['id_expand_kj'], inputs['id_reduce_ji'],
+                inputs['id3dnb_i'], inputs['id3dnb_j'], inputs['id3dnb_k']
+        )
         n_atoms = tf.shape(Z)[0]
 
         # Calculate distances

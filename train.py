@@ -6,12 +6,11 @@ import logging
 import string
 import random
 from datetime import datetime
-from functools import partial
 
 from dimenet.model.DimeNet import DimeNet
 from dimenet.model.activations import swish
 from dimenet.training.Trainer import Trainer
-from dimenet.training.DataContainer import DataContainer, index_keys
+from dimenet.training.DataContainer import DataContainer
 from dimenet.training.DataProvider import DataProvider
 
 from sacred import Experiment
@@ -101,8 +100,10 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
         validation = {}
 
         # Initialize datasets
-        train['dataset'] = data_provider.get_dataset('train').prefetch(10)
-        validation['dataset'] = data_provider.get_dataset('val').prefetch(20)
+        train['dataset'] = data_provider.get_dataset('train').prefetch(tf.data.experimental.AUTOTUNE)
+        train['dataset_iter'] = iter(train['dataset'])
+        validation['dataset'] = data_provider.get_dataset('val').prefetch(tf.data.experimental.AUTOTUNE)
+        validation['dataset_iter'] = iter(validation['dataset'])
 
         logging.info("Initialize model")
         model = DimeNet(num_features=num_features, num_blocks=num_blocks, num_bilinear=num_bilinear,
@@ -173,31 +174,22 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
 
         steps_per_epoch = int(np.ceil(num_train / batch_size))
 
-        def get_batch(dataset):
-            """Get batch from dataset and transform it to inputs and outputs."""
-            batch = next(iter(dataset))
-            input_keys = ['Z', 'R'] + index_keys
-            batch_inputs = [batch[k] for k in input_keys]
-            return batch_inputs, batch['targets']
-
-        @tf.function(input_signature=[
-                [tf.TensorSpec(shape=[None], dtype=tf.int32),
-                 tf.TensorSpec(shape=[None, 3], dtype=tf.float32),
-                 tf.TensorSpec(shape=[None], dtype=tf.int32),
-                 tf.TensorSpec(shape=[None], dtype=tf.int32),
-                 tf.TensorSpec(shape=[None], dtype=tf.int32),
-                 tf.TensorSpec(shape=[None], dtype=tf.int32),
-                 tf.TensorSpec(shape=[None], dtype=tf.int32),
-                 tf.TensorSpec(shape=[None], dtype=tf.int32),
-                 tf.TensorSpec(shape=[None], dtype=tf.int32),
-                 tf.TensorSpec(shape=[None], dtype=tf.int32)],
-                tf.TensorSpec(shape=[None, len(targets)], dtype=tf.float32)])
-        def train_one_batch(inputs, outputs):
+        @tf.function
+        def train_on_batch(dataset_iter):
+            inputs, outputs = next(dataset_iter)
             with tf.GradientTape() as tape:
                 preds = model(inputs, training=True)
                 mean_mae, mae = calculate_mae(outputs, preds)
                 loss = mean_mae
             trainer.update_weights(loss, tape)
+            return loss, mean_mae, mae
+
+        @tf.function
+        def test_on_batch(dataset_iter):
+            inputs, outputs = next(dataset_iter)
+            preds = model(inputs, training=False)
+            mean_mae, mae = calculate_mae(outputs, preds)
+            loss = mean_mae
             return loss, mean_mae, mae
 
         # Training loop
@@ -210,8 +202,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             tf.summary.experimental.set_step(step)
 
             # Perform training step
-            inputs, outputs = get_batch(train['dataset'])
-            loss, mean_mae, mae = train_one_batch(inputs, outputs)
+            loss, mean_mae, mae = train_on_batch(train['dataset_iter'])
 
             # Update averages
             train['num'] += 1
@@ -242,10 +233,8 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
 
                     # Compute averages
                     for i in range(int(np.ceil(num_valid / batch_size))):
-                        inputs, outputs = get_batch(validation['dataset'])
-                        preds = model(inputs, training=False)
-                        mean_mae, mae = calculate_mae(outputs, preds)
-                        loss = mean_mae
+
+                        loss, mean_mae, mae = test_on_batch(validation['dataset_iter'])
 
                         validation['num'] += 1
                         validation['loss_avg'] = update_average(
