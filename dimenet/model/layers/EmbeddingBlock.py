@@ -11,16 +11,16 @@ class EmbeddingBlock(layers.Layer):
         super().__init__(name=name, **kwargs)
         self.num_features = num_features
         self.weight_init = GlorotOrthogonal()
-        self.emb_init = tf.initializers.RandomUniform(minval=-np.sqrt(3), maxval=np.sqrt(3))
+
+        # Atom embeddings: We go up to Pu (94). Use 95 dimensions because of 0-based indexing
+        emb_init = tf.initializers.RandomUniform(minval=-np.sqrt(3), maxval=np.sqrt(3))
+        self.embeddings = self.add_weight(name="embeddings", shape=(95, self.num_features),
+                                          dtype=tf.float32, initializer=emb_init, trainable=True)
 
         self.dense_rbf = layers.Dense(self.num_features, activation=activation, use_bias=True,
                                       kernel_initializer=self.weight_init)
         self.dense = layers.Dense(self.num_features, activation=activation, use_bias=True,
                                   kernel_initializer=self.weight_init)
-
-    def build(self, input_shape):
-        # Atom embeddings: We go up to Pu (94). Use 95 dimensions because of 0-based indexing
-        self.embeddings = tf.Variable(self.emb_init((95, self.num_features)), name="embeddings")
 
     def call(self, inputs):
         Z, rbf, idnb_i, idnb_j = inputs

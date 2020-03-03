@@ -41,8 +41,9 @@ class InteractionBlock(layers.Layer):
                               kernel_initializer=weight_init))
 
     def build(self, input_shape):
-        self.W_bilin = tf.Variable(self.bilin_initializer(
-            (self.num_features, self.num_features, self.num_bilinear)))
+        self.W_bilin = self.add_weight(
+                name="bilinear", shape=(self.num_features, self.num_bilinear, self.num_features),
+                dtype=tf.float32, initializer=self.bilin_initializer, trainable=True)
 
     def call(self, inputs):
         x, rbf, sbf, id_expand_kj, id_reduce_ji = inputs
@@ -60,7 +61,7 @@ class InteractionBlock(layers.Layer):
         sbf = self.dense_sbf(sbf)
         x_kj = tf.gather(x_kj, id_expand_kj)
         # Apply bilinear layer to interactions and basis function activation
-        x_kj = tf.einsum("wi,wl,ijl->wj", x_kj, sbf, self.W_bilin)
+        x_kj = tf.einsum("wj,wl,ijl->wi", sbf, x_kj, self.W_bilin)
         x_kj = tf.math.unsorted_segment_sum(
             x_kj, id_reduce_ji, num_interactions)  # sum over messages
 

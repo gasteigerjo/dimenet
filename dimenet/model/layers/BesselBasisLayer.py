@@ -13,11 +13,11 @@ class BesselBasisLayer(layers.Layer):
         self.inv_cutoff = tf.constant(1 / cutoff, dtype=tf.float32)
         self.envelope = Envelope(envelope_exponent)
 
-    def build(self, input_shape):
-        # Initialize centers
-        frequencies = np.pi * np.arange(1, self.num_radial + 1)
-        self.frequencies = tf.Variable(
-            frequencies, name="frequencies", dtype=tf.float32)
+        # Initialize frequencies at canonical positions
+        def freq_init(shape, dtype):
+            return tf.constant(np.pi * np.arange(1, shape + 1, dtype=np.float32), dtype=dtype)
+        self.frequencies = self.add_weight(name="frequencies", shape=self.num_radial,
+                                           dtype=tf.float32, initializer=freq_init, trainable=True)
 
     def call(self, inputs):
         d_scaled = inputs * self.inv_cutoff
