@@ -104,15 +104,11 @@ class DimeNet(tf.keras.Model):
                 'id3dnb_k': tf.TensorSpec(name='id3dnb_k', shape=[None], dtype=tf.int32)
                 }])
     def call(self, inputs):
-        (Z, R, batch_seg,
-         idnb_i, idnb_j,
-         id_expand_kj, id_reduce_ji,
-         id3dnb_i, id3dnb_j, id3dnb_k) = (
-                inputs['Z'], inputs['R'], inputs['batch_seg'],
-                inputs['idnb_i'], inputs['idnb_j'],
-                inputs['id_expand_kj'], inputs['id_reduce_ji'],
-                inputs['id3dnb_i'], inputs['id3dnb_j'], inputs['id3dnb_k']
-        )
+        Z, R                         = inputs['Z'], inputs['R']
+        batch_seg                    = inputs['batch_seg']
+        idnb_i, idnb_j               = inputs['idnb_i'], inputs['idnb_j']
+        id_expand_kj, id_reduce_ji   = inputs['id_expand_kj'], inputs['id_reduce_ji']
+        id3dnb_i, id3dnb_j, id3dnb_k = inputs['id3dnb_i'], inputs['id3dnb_j'], inputs['id3dnb_k']
         n_atoms = tf.shape(Z)[0]
 
         # Calculate distances
