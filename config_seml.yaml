@@ -1,7 +1,7 @@
 
 seml:
-  executable: 'train.py'
-  db_collection: 'dimenet_refactored'
+  executable: 'train_seml.py'
+  db_collection: 'dimenet'
 
 slurm:
   output_dir: '~/logs'
