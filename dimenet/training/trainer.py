@@ -32,7 +32,6 @@ class Trainer:
         grads = gradient_tape.gradient(loss, self.model.trainable_weights)
 
         global_norm = tf.linalg.global_norm(grads)
-        tf.summary.scalar("global_gradient_norm", global_norm)
         if self.max_grad_norm is not None:
             grads, _ = tf.clip_by_global_norm(grads, self.max_grad_norm, use_norm=global_norm)
 

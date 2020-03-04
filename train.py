@@ -47,7 +47,6 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
 
     # Create directories
     # A unique directory name is created for this run based on the input
-
     if restart is None:
         directory = (logdir + "/" + datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + id_generator()
                      + "_" + os.path.basename(dataset)
@@ -115,10 +114,6 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
                         activation=swish)
 
         logging.info("Prepare training")
-        # Initialize trainer
-        trainer = Trainer(model, learning_rate, warmup_steps,
-                          decay_steps, decay_rate,
-                          ema_decay=ema_decay, max_grad_norm=1000)
 
         # Save/load best recorded loss (only the best model is saved)
         save_keys = ['step', 'loss', 'mean_mae', 'mean_log_mae', *targets]
@@ -133,31 +128,10 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             best_res['step'] = 0
             np.savez(best_loss_file, **best_res)
 
-        def calculate_mae(targets, preds):
-            """Calculate mean absolute error between two values."""
-            delta = tf.abs(targets - preds)
-            mae = tf.reduce_mean(delta, axis=0)
-            mean_mae = tf.reduce_mean(mae)
-            return mean_mae, mae
-
-        def update_average(avg, tmp, num):
-            """Incrementally update an average."""
-            return avg + (tmp - avg) / num
-
-        # Initialize training set error averages
-        train['num'] = 0
-        train['loss_avg'] = 0.
-        train['mae_avg'] = 0.
-        train['mean_mae_avg'] = 0.
-
-        if ex is not None:
-            ex.current_run.info = {}
-            ex.current_run.info['directory'] = directory
-            ex.current_run.info['step'] = []
-            ex.current_run.info['mean_mae_train'] = []
-            ex.current_run.info['mean_mae_best'] = []
-            ex.current_run.info['mean_log_mae_train'] = []
-            ex.current_run.info['mean_log_mae_best'] = []
+        # Initialize trainer
+        trainer = Trainer(model, learning_rate, warmup_steps,
+                          decay_steps, decay_rate,
+                          ema_decay=ema_decay, max_grad_norm=1000)
 
         # Set up checkpointing
         ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=trainer.optimizer, model=model)
@@ -172,7 +146,12 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
         else:
             step = 0
 
-        steps_per_epoch = int(np.ceil(num_train / batch_size))
+        def calculate_mae(targets, preds):
+            """Calculate mean absolute error between two values."""
+            delta = tf.abs(targets - preds)
+            mae = tf.reduce_mean(delta, axis=0)
+            mean_mae = tf.reduce_mean(mae)
+            return mean_mae, mae
 
         @tf.function
         def train_on_batch(dataset_iter):
@@ -192,8 +171,29 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
             loss = mean_mae
             return loss, mean_mae, mae
 
+        if ex is not None:
+            ex.current_run.info = {}
+            ex.current_run.info['directory'] = directory
+            ex.current_run.info['step'] = []
+            ex.current_run.info['mean_mae_train'] = []
+            ex.current_run.info['mean_mae_best'] = []
+            ex.current_run.info['mean_log_mae_train'] = []
+            ex.current_run.info['mean_log_mae_best'] = []
+
+        # Initialize training set error averages
+        train['num'] = 0
+        train['loss_avg'] = 0.
+        train['mae_avg'] = 0.
+        train['mean_mae_avg'] = 0.
+
+        def update_average(avg, tmp, num):
+            """Incrementally update an average."""
+            return avg + (tmp - avg) / num
+
         # Training loop
         logging.info("Start training")
+        steps_per_epoch = int(np.ceil(num_train / batch_size))
+
         while step <= max_steps:
             # Update step number
             step += 1
@@ -296,6 +296,6 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
                     f"{step}/{max_steps} (epoch {epoch+1}): "
                     f"Loss: train={results['loss_train']:.6f}, best={best_res['loss']:.6f}; "
                     f"logMAE: train={results['mean_log_mae_train']:.6f}, best={best_res['mean_log_mae']:.6f}")
-        return({"loss": results["loss_train"], "best_loss": best_res['loss'],
-                "mean_log_mae": results["mean_log_mae_train"], "best_mean_log_mae": best_res['mean_log_mae'],
-                "best_step": best_res['step']})
+    return({"loss": results["loss_train"], "best_loss": best_res['loss'],
+            "mean_log_mae": results["mean_log_mae_train"], "best_mean_log_mae": best_res['mean_log_mae'],
+            "best_step": best_res['step']})
