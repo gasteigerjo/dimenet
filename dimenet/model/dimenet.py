@@ -44,7 +44,7 @@ class DimeNet(tf.keras.Model):
 
     def __init__(
             self, num_features, num_blocks, num_bilinear, num_spherical,
-            num_radial, envelope_exponent=5, cutoff=5.0, num_before_skip=1,
+            num_radial, cutoff=5.0, envelope_exponent=5, num_before_skip=1,
             num_after_skip=2, num_dense_output=3, num_targets=12,
             activation=swish, name='dimenet', **kwargs):
         super().__init__(name=name, **kwargs)

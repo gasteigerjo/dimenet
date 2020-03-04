@@ -18,10 +18,13 @@ from sacred import Experiment
 from seml import database_utils as db_utils
 from seml import misc
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
 ex = Experiment()
 misc.setup_logger(ex)
+
+# TensorFlow logging verbosity
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+tf.get_logger().setLevel('WARN')
+tf.autograph.set_verbosity(1)
 
 
 @ex.config
@@ -108,13 +111,11 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
         model = DimeNet(num_features=num_features, num_blocks=num_blocks, num_bilinear=num_bilinear,
                         num_spherical=num_spherical, num_radial=num_radial,
                         cutoff=cutoff, envelope_exponent=envelope_exponent,
-                        num_before_skip=num_before_skip,
-                        num_after_skip=num_after_skip,
-                        num_dense_output=num_dense_output,
+                        num_before_skip=num_before_skip, num_after_skip=num_after_skip,
+                        num_dense_output=num_dense_output, num_targets=len(targets),
                         activation=swish)
 
         logging.info("Prepare training")
-
         # Save/load best recorded loss (only the best model is saved)
         save_keys = ['step', 'loss', 'mean_mae', 'mean_log_mae', *targets]
         best_res = {}
@@ -140,11 +141,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
         # Restore latest checkpoint
         ckpt_restored = tf.train.latest_checkpoint(log_dir)
         if ckpt_restored is not None:
-            # Read step from checkpoint filename
             ckpt.restore(ckpt_restored)
-            step = ckpt.step.numpy()
-        else:
-            step = 0
 
         def calculate_mae(targets, preds):
             """Calculate mean absolute error between two values."""
@@ -194,6 +191,10 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
         logging.info("Start training")
         steps_per_epoch = int(np.ceil(num_train / batch_size))
 
+        if ckpt_restored is not None:
+            step = ckpt.step.numpy()
+        else:
+            step = 0
         while step <= max_steps:
             # Update step number
             step += 1
@@ -225,7 +226,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
 
                 results = {}
                 if num_valid > 0:
-                    # Initialize validation set error averages
+                    # Initialize validation set averages
                     validation['num'] = 0
                     validation['loss_avg'] = 0.
                     validation['mae_avg'] = 0.

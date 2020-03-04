@@ -1,4 +1,4 @@
-# [WIP] Directional Message Passing Neural Network (DimeNet)
+# Directional Message Passing Neural Network (DimeNet)
 
 <p align="center">
 <img src="https://github.com/klicperajo/dimenet/blob/master/2dfilters_large_layer2.png?raw=true">
@@ -11,12 +11,12 @@ Reference implementation of the DimeNet model proposed in the paper:
 by Johannes Klicpera, Janek Groß, Stephan Günnemann   
 Published at ICLR 2020.
 
-## WORK IN PROGRESS
+## TensorFlow 2
 
-This repository is still **work in progress**, since we are currently migrating the model to Tensorflow 2. Current state: The predictions are the same, but for some reason the model is 2x slower than with TF1.
+For this implementation we have migrated the original code to TensorFlow 2. The predictions are the same but we observe a slowdown of 2x compared to the original TensorFlow 1 implementation, despite extensive efforts to mitigate this. Since GPU profiling is currently broken in Tensorflow 2.1 (see https://github.com/tensorflow/tensorboard/issues/3256), we can't properly investigate the issue. We will have to wait until profiling is fixed or a new, faster TensorFlow version comes around.
 
-<!-- ## Run the code
-This repository primarily contains a demonstration of enhancing a graph convolutional network (GCN) with graph diffusion convolution (GDC) in the notebook `gdc_demo.ipynb`. -->
+## Run the code
+This repository contains a notebook for training the model (`train.ipynb`) and for generating predictions on the test set with a trained model (`predict.ipynb`). It also contains a training script for training the model on a cluster with Sacred and SEML (`train_seml.py`).
 
 ## Architecture
 
