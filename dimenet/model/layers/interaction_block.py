@@ -6,43 +6,43 @@ from ..initializers import GlorotOrthogonal
 
 
 class InteractionBlock(layers.Layer):
-    def __init__(self, num_features, num_bilinear, num_before_skip, num_after_skip,
+    def __init__(self, emb_size, num_bilinear, num_before_skip, num_after_skip,
                  activation=None, name='interaction', **kwargs):
         super().__init__(name=name, **kwargs)
-        self.num_features = num_features
+        self.emb_size = emb_size
         self.num_bilinear = num_bilinear
         weight_init = GlorotOrthogonal()
-        self.bilin_initializer = tf.initializers.RandomNormal(mean=0.0, stddev=2 / num_features)
+        self.bilin_initializer = tf.initializers.RandomNormal(mean=0.0, stddev=2 / emb_size)
 
         # Transformations of Bessel and spherical basis representations
-        self.dense_rbf = layers.Dense(num_features, use_bias=False, kernel_initializer=weight_init)
+        self.dense_rbf = layers.Dense(emb_size, use_bias=False, kernel_initializer=weight_init)
         self.dense_sbf = layers.Dense(num_bilinear, use_bias=False, kernel_initializer=weight_init)
 
         # Dense transformations of input messages
-        self.dense_ji = layers.Dense(num_features, activation=activation, use_bias=True,
+        self.dense_ji = layers.Dense(emb_size, activation=activation, use_bias=True,
                                      kernel_initializer=weight_init)
-        self.dense_kj = layers.Dense(num_features, activation=activation, use_bias=True,
+        self.dense_kj = layers.Dense(emb_size, activation=activation, use_bias=True,
                                      kernel_initializer=weight_init)
 
         # Residual layers before skip connection
         self.layers_before_skip = []
         for i in range(num_before_skip):
             self.layers_before_skip.append(
-                ResidualLayer(num_features, activation=activation, use_bias=True,
+                ResidualLayer(emb_size, activation=activation, use_bias=True,
                               kernel_initializer=weight_init))
-        self.final_before_skip = layers.Dense(num_features, activation=activation, use_bias=True,
+        self.final_before_skip = layers.Dense(emb_size, activation=activation, use_bias=True,
                                               kernel_initializer=weight_init)
 
         # Residual layers after skip connection
         self.layers_after_skip = []
         for i in range(num_after_skip):
             self.layers_after_skip.append(
-                ResidualLayer(num_features, activation=activation, use_bias=True,
+                ResidualLayer(emb_size, activation=activation, use_bias=True,
                               kernel_initializer=weight_init))
 
     def build(self, input_shape):
         self.W_bilin = self.add_weight(
-                name="bilinear", shape=(self.num_features, self.num_bilinear, self.num_features),
+                name="bilinear", shape=(self.emb_size, self.num_bilinear, self.emb_size),
                 dtype=tf.float32, initializer=self.bilin_initializer, trainable=True)
 
     def call(self, inputs):

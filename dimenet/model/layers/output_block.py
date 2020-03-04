@@ -5,17 +5,17 @@ from ..initializers import GlorotOrthogonal
 
 
 class OutputBlock(layers.Layer):
-    def __init__(self, num_features, num_dense, num_targets=12,
+    def __init__(self, emb_size, num_dense, num_targets=12,
                  activation=None, name='output', **kwargs):
         super().__init__(name=name, **kwargs)
         weight_init = GlorotOrthogonal()
 
-        self.dense_rbf = layers.Dense(num_features, use_bias=False,
+        self.dense_rbf = layers.Dense(emb_size, use_bias=False,
                                       kernel_initializer=weight_init)
         self.dense_layers = []
         for i in range(num_dense):
             self.dense_layers.append(
-                layers.Dense(num_features, activation=activation, use_bias=True,
+                layers.Dense(emb_size, activation=activation, use_bias=True,
                              kernel_initializer=weight_init))
         self.dense_final = layers.Dense(num_targets, use_bias=False,
                                         kernel_initializer=weight_init) # 'zeros')

@@ -14,8 +14,8 @@ class DimeNet(tf.keras.Model):
 
     Parameters
     ----------
-    num_features
-        Dimensionality of feature vector
+    emb_size
+        Embedding size used throughout the model
     num_blocks
         Number of building blocks to be stacked
     num_bilinear
@@ -43,7 +43,7 @@ class DimeNet(tf.keras.Model):
     """
 
     def __init__(
-            self, num_features, num_blocks, num_bilinear, num_spherical,
+            self, emb_size, num_blocks, num_bilinear, num_spherical,
             num_radial, cutoff=5.0, envelope_exponent=5, num_before_skip=1,
             num_after_skip=2, num_dense_output=3, num_targets=12,
             activation=swish, name='dimenet', **kwargs):
@@ -58,18 +58,18 @@ class DimeNet(tf.keras.Model):
 
         # Embedding and first output block
         self.output_blocks = []
-        self.emb_block = EmbeddingBlock(num_features, activation=activation)
+        self.emb_block = EmbeddingBlock(emb_size, activation=activation)
         self.output_blocks.append(
-            OutputBlock(num_features, num_dense_output, num_targets, activation=activation))
+            OutputBlock(emb_size, num_dense_output, num_targets, activation=activation))
 
         # Interaction and remaining output blocks
         self.int_blocks = []
         for i in range(num_blocks):
             self.int_blocks.append(
-                InteractionBlock(num_features, num_bilinear, num_before_skip,
+                InteractionBlock(emb_size, num_bilinear, num_before_skip,
                                  num_after_skip, activation=activation))
             self.output_blocks.append(
-                OutputBlock(num_features, num_dense_output, num_targets, activation=activation))
+                OutputBlock(emb_size, num_dense_output, num_targets, activation=activation))
 
     def calculate_interatomic_distances(self, R, idx_i, idx_j):
         Ri = tf.gather(R, idx_i)

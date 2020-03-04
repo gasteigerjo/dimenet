@@ -1,4 +1,4 @@
-num_features: 128
+emb_size: 128
 num_blocks: 6
 
 num_bilinear: 8

@@ -36,7 +36,7 @@ def config():
 
 
 @ex.automain
-def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
+def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
         num_before_skip, num_after_skip, num_dense_output,
         cutoff, envelope_exponent, dataset, num_train, num_valid,
         data_seed, max_steps, learning_rate, ema_decay,
@@ -53,7 +53,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
     if restart is None:
         directory = (logdir + "/" + datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + id_generator()
                      + "_" + os.path.basename(dataset)
-                     + "_f" + str(num_features)
+                     + "_e" + str(emb_size)
                      + "_bi" + str(num_bilinear)
                      + "_sbf" + str(num_spherical)
                      + "_rbf" + str(num_radial)
@@ -108,7 +108,7 @@ def run(num_features, num_blocks, num_bilinear, num_spherical, num_radial,
         validation['dataset_iter'] = iter(validation['dataset'])
 
         logging.info("Initialize model")
-        model = DimeNet(num_features=num_features, num_blocks=num_blocks, num_bilinear=num_bilinear,
+        model = DimeNet(emb_size=emb_size, num_blocks=num_blocks, num_bilinear=num_bilinear,
                         num_spherical=num_spherical, num_radial=num_radial,
                         cutoff=cutoff, envelope_exponent=envelope_exponent,
                         num_before_skip=num_before_skip, num_after_skip=num_after_skip,
