@@ -51,3 +51,38 @@ class Trainer:
     def restore_variable_backups(self):
         for var, bck in zip(self.model.trainable_weights, self.backup_vars):
             var.assign(bck)
+
+    @tf.function
+    def train_on_batch(self, dataset_iter, metrics):
+        inputs, targets = next(dataset_iter)
+        with tf.GradientTape() as tape:
+            preds = self.model(inputs, training=True)
+            mae = tf.keras.losses.MAE(targets, preds)
+            mean_mae = tf.reduce_mean(mae)
+            loss = mean_mae
+        self.update_weights(loss, tape)
+        nsamples = tf.shape(preds)[0]
+        metrics.update_state(loss, mean_mae, mae, nsamples)
+        return loss
+
+    @tf.function
+    def test_on_batch(self, dataset_iter, metrics):
+        inputs, targets = next(dataset_iter)
+        preds = self.model(inputs, training=False)
+        mae = tf.keras.losses.MAE(targets, preds)
+        mean_mae = tf.reduce_mean(mae)
+        loss = mean_mae
+        nsamples = tf.shape(preds)[0]
+        metrics.update_state(loss, mean_mae, mae, nsamples)
+        return loss
+
+    @tf.function
+    def predict_on_batch(self, dataset_iter, metrics):
+        inputs, targets = next(dataset_iter)
+        preds = self.model(inputs, training=False)
+        mae = tf.keras.losses.MAE(targets, preds)
+        mean_mae = tf.reduce_mean(mae)
+        loss = mean_mae
+        nsamples = tf.shape(preds)[0]
+        metrics.update_state(loss, mean_mae, mae, nsamples)
+        return preds

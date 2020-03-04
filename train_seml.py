@@ -10,6 +10,7 @@ from datetime import datetime
 from dimenet.model.dimenet import DimeNet
 from dimenet.model.activations import swish
 from dimenet.training.trainer import Trainer
+from dimenet.training.metrics import Metrics
 from dimenet.training.data_container import DataContainer
 from dimenet.training.data_provider import DataProvider
 
@@ -39,9 +40,9 @@ def config():
 def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
         num_before_skip, num_after_skip, num_dense_output,
         cutoff, envelope_exponent, dataset, num_train, num_valid,
-        data_seed, max_steps, learning_rate, ema_decay,
+        data_seed, num_steps, learning_rate, ema_decay,
         decay_steps, warmup_steps, decay_rate, batch_size,
-        summary_interval, validation_interval, save_interval, restart, targets,
+        evaluation_interval, save_interval, restart, targets,
         comment, logdir):
 
     # Used for creating a "unique" id for a run (almost impossible to generate the same twice)
@@ -82,11 +83,6 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
     best_loss_file = os.path.join(best_dir, 'best_loss.npz')
     best_ckpt_folder = best_dir
     step_ckpt_folder = log_dir
-
-    def create_summary(dictionary):
-        """Create a summary from key-value pairs given a dictionary"""
-        for key, value in dictionary.items():
-            tf.summary.scalar(key, value)
 
     # Initialize summary writer
     summary_writer = tf.summary.create_file_writer(log_dir)
@@ -143,160 +139,75 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
         if ckpt_restored is not None:
             ckpt.restore(ckpt_restored)
 
-        def calculate_mae(targets, preds):
-            """Calculate mean absolute error between two values."""
-            delta = tf.abs(targets - preds)
-            mae = tf.reduce_mean(delta, axis=0)
-            mean_mae = tf.reduce_mean(mae)
-            return mean_mae, mae
-
-        @tf.function
-        def train_on_batch(dataset_iter):
-            inputs, outputs = next(dataset_iter)
-            with tf.GradientTape() as tape:
-                preds = model(inputs, training=True)
-                mean_mae, mae = calculate_mae(outputs, preds)
-                loss = mean_mae
-            trainer.update_weights(loss, tape)
-            return loss, mean_mae, mae
-
-        @tf.function
-        def test_on_batch(dataset_iter):
-            inputs, outputs = next(dataset_iter)
-            preds = model(inputs, training=False)
-            mean_mae, mae = calculate_mae(outputs, preds)
-            loss = mean_mae
-            return loss, mean_mae, mae
-
         if ex is not None:
             ex.current_run.info = {}
             ex.current_run.info['directory'] = directory
             ex.current_run.info['step'] = []
-            ex.current_run.info['mean_mae_train'] = []
-            ex.current_run.info['mean_mae_best'] = []
-            ex.current_run.info['mean_log_mae_train'] = []
-            ex.current_run.info['mean_log_mae_best'] = []
 
-        # Initialize training set error averages
-        train['num'] = 0
-        train['loss_avg'] = 0.
-        train['mae_avg'] = 0.
-        train['mean_mae_avg'] = 0.
-
-        def update_average(avg, tmp, num):
-            """Incrementally update an average."""
-            return avg + (tmp - avg) / num
+        # Initialize metrics
+        train['metrics'] = Metrics('train', targets, ex)
+        validation['metrics'] = Metrics('val', targets, ex)
 
         # Training loop
         logging.info("Start training")
         steps_per_epoch = int(np.ceil(num_train / batch_size))
 
         if ckpt_restored is not None:
-            step = ckpt.step.numpy()
+            step_init = ckpt.step.numpy()
         else:
-            step = 0
-        while step <= max_steps:
+            step_init = 1
+        for step in range(step_init, num_steps + 1):
             # Update step number
-            step += 1
             epoch = step // steps_per_epoch
             ckpt.step.assign(step)
             tf.summary.experimental.set_step(step)
 
             # Perform training step
-            loss, mean_mae, mae = train_on_batch(train['dataset_iter'])
-
-            # Update averages
-            train['num'] += 1
-            train['loss_avg'] = update_average(
-                train['loss_avg'], loss, train['num'])
-            train['mae_avg'] = update_average(
-                train['mae_avg'], mae, train['num'])
-            train['mean_mae_avg'] = update_average(
-                train['mean_mae_avg'], mean_mae, train['num'])
+            trainer.train_on_batch(train['dataset_iter'], train['metrics'])
 
             # Save progress
             if (step % save_interval == 0):
                 manager.save()
 
             # Check performance on the validation set
-            if (step % validation_interval == 0):
+            if (step % evaluation_interval == 0):
+
                 # Save backup variables and load averaged variables
                 trainer.save_variable_backups()
                 trainer.load_averaged_variables()
 
-                results = {}
-                if num_valid > 0:
-                    # Initialize validation set averages
-                    validation['num'] = 0
-                    validation['loss_avg'] = 0.
-                    validation['mae_avg'] = 0.
-                    validation['mean_mae_avg'] = 0.
-
                     # Compute averages
                     for i in range(int(np.ceil(num_valid / batch_size))):
+                    trainer.test_on_batch(validation['dataset_iter'], validation['metrics'])
 
-                        loss, mean_mae, mae = test_on_batch(validation['dataset_iter'])
-
-                        validation['num'] += 1
-                        validation['loss_avg'] = update_average(
-                            validation['loss_avg'], loss, validation['num'])
-                        validation['mae_avg'] = update_average(
-                            validation['mae_avg'], mae, validation['num'])
-                        validation['mean_mae_avg'] = update_average(
-                            validation['mean_mae_avg'], mean_mae, validation['num'])
-
-                    # Store results in dictionary
-                    results['loss_valid'] = validation['loss_avg']
-                    results['mean_mae_valid'] = validation['mean_mae_avg']
-                    results['mean_log_mae_valid'] = np.mean(np.log(validation['mae_avg']))
-                    for i, key in enumerate(targets):
-                        results[key + '_valid'] = validation['mae_avg'][i]
-
-                    if results["mean_mae_valid"] < best_res['mean_mae']:
-                        best_res['loss'] = results['loss_valid']
-                        best_res['mean_mae'] = results['mean_mae_valid']
-                        best_res['mean_log_mae'] = results['mean_log_mae_valid']
-                        for i, key in enumerate(targets):
-                            best_res[key] = results[key + '_valid']
+                # Update and save best result
+                if validation["mean_mae_avg"] < best_res['mean_mae']:
                         best_res['step'] = step
+                    best_res.update(validation['metrics'].result())
 
                         np.savez(best_loss_file, **best_res)
                         model.save_weights(best_ckpt_folder)
 
-                results["loss_best"] = best_res['loss']
-                results["mean_log_mae_best"] = best_res['mean_log_mae']
-                create_summary(results)
+                tf.summary.scalar("loss_best", best_res['loss_val'])
+                tf.summary.scalar("mean_mae_best", best_res['mean_mae_val'])
+                tf.summary.scalar("mean_log_mae_best", best_res['mean_log_mae_val'])
+
+                logging.info(
+                    f"{step}/{num_steps} (epoch {epoch+1}): "
+                    f"Loss: train={train['metrics'].loss:.6f}, val={validation['metrics'].loss:.6f}; "
+                    f"logMAE: train={train['metrics'].mean_log_mae:.6f}, "
+                    f"val={validation['metrics'].mean_log_mae:.6f}")
+
+                train['metrics'].write()
+                validation['metrics'].write()
+
+                train['metrics'].reset_states()
+                validation['metrics'].reset_states()
 
                 # Restore backup variables
                 trainer.restore_variable_backups()
 
-            # Generate summaries
-            if (step % summary_interval == 0) and (step > 0):
-                results = {}
-                results['loss_train'] = train['loss_avg']
-                results['mean_mae_train'] = train['mean_mae_avg']
-                results['mean_log_mae_train'] = np.mean(np.log(train['mean_mae_avg']))
-                for i, key in enumerate(targets):
-                    results[key + '_train'] = train['mae_avg'][i]
-
-                # Reset training set error averages
-                train['num'] = 0
-                train['loss_avg'] = 0.
-                train['mae_avg'] = 0.
-                train['mean_mae_avg'] = 0.
-
-                create_summary(results)
-                summary_writer.flush()
-                ex.current_run.info['step'].append(step)
-                ex.current_run.info['mean_mae_train'].append(results['mean_mae_train'])
-                ex.current_run.info['mean_mae_best'].append(best_res['mean_mae'])
-                ex.current_run.info['mean_log_mae_train'].append(results['mean_log_mae_train'])
-                ex.current_run.info['mean_log_mae_best'].append(best_res['mean_log_mae'])
-
-                logging.info(
-                    f"{step}/{max_steps} (epoch {epoch+1}): "
-                    f"Loss: train={results['loss_train']:.6f}, best={best_res['loss']:.6f}; "
-                    f"logMAE: train={results['mean_log_mae_train']:.6f}, best={best_res['mean_log_mae']:.6f}")
-    return({"loss": results["loss_train"], "best_loss": best_res['loss'],
-            "mean_log_mae": results["mean_log_mae_train"], "best_mean_log_mae": best_res['mean_log_mae'],
-            "best_step": best_res['step']})
+    return({"step_best": best_res['step'],
+            "loss_best": best_res['loss_val'],
+            "mean_mae_best": best_res['mean_mae_val'],
+            "mean_log_mae_best": best_res['mean_log_mae_val']})

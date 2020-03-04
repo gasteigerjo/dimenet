@@ -34,7 +34,7 @@ fixed:
   dataset: "./data/qm9_eV.npz"
   logdir: "/nfs/staff-ssd/klicpera/dimenet/logs"
 
-  max_steps: 10000000
+  num_steps: 10000000
   ema_decay: 0.999
 
   learning_rate: 0.001
@@ -43,8 +43,7 @@ fixed:
   decay_steps: 4000000
 
   batch_size: 32
-  summary_interval: 10000
-  validation_interval: 10000
+  evaluation_interval: 10000
   save_interval: 10000
   restart: None
   comment: "debug"
