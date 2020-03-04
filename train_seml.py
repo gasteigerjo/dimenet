@@ -87,15 +87,20 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
     # Initialize summary writer
     summary_writer = tf.summary.create_file_writer(log_dir)
 
+    train = {}
+    validation = {}
+
+    # Initialize metrics
+    train['metrics'] = Metrics('train', targets, ex)
+    validation['metrics'] = Metrics('val', targets, ex)
+
     with summary_writer.as_default():
         logging.info("Load dataset")
         data_container = DataContainer(dataset, cutoff=cutoff, target_keys=targets)
 
-        # Initialize DataProvider (splits dataset into training, validation and test set based on data_seed)
+        # Initialize DataProvider (splits dataset into 3 sets based on data_seed and provides tf.datasets)
         data_provider = DataProvider(data_container, num_train, num_valid, batch_size,
                                      seed=data_seed, randomized=True)
-        train = {}
-        validation = {}
 
         # Initialize datasets
         train['dataset'] = data_provider.get_dataset('train').prefetch(tf.data.experimental.AUTOTUNE)
@@ -143,10 +148,6 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
             ex.current_run.info = {}
             ex.current_run.info['directory'] = directory
             ex.current_run.info['step'] = []
-
-        # Initialize metrics
-        train['metrics'] = Metrics('train', targets, ex)
-        validation['metrics'] = Metrics('val', targets, ex)
 
         # Training loop
         logging.info("Start training")
