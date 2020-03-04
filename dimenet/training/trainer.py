@@ -22,8 +22,11 @@ class Trainer:
         self.optimizer = tfa.optimizers.MovingAverage(opt, average_decay=self.ema_decay)
 
         # Initialize backup variables
-        self.backup_vars = [tf.Variable(var, dtype=var.dtype, trainable=False)
-                            for var in self.model.trainable_weights]
+        if model.built:
+            self.backup_vars = [tf.Variable(var, dtype=var.dtype, trainable=False)
+                                for var in self.model.trainable_weights]
+        else:
+            self.backup_vars = None
 
     def update_weights(self, loss, gradient_tape):
         grads = gradient_tape.gradient(loss, self.model.trainable_weights)
@@ -39,8 +42,12 @@ class Trainer:
         self.optimizer.assign_average_vars(self.model.trainable_weights)
 
     def save_variable_backups(self):
-        for var, bck in zip(self.model.trainable_weights, self.backup_vars):
-            bck.assign(var)
+        if self.backup_vars is None:
+            self.backup_vars = [tf.Variable(var, dtype=var.dtype, trainable=False)
+                                for var in self.model.trainable_weights]
+        else:
+            for var, bck in zip(self.model.trainable_weights, self.backup_vars):
+                bck.assign(var)
 
     def restore_variable_backups(self):
         for var, bck in zip(self.model.trainable_weights, self.backup_vars):
