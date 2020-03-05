@@ -91,18 +91,6 @@ class DimeNet(tf.keras.Model):
         angle = tf.math.atan2(y, x)
         return angle
 
-    @tf.function(input_signature=[{
-                'Z': tf.TensorSpec(name='Z', shape=[None], dtype=tf.int32),
-                'R': tf.TensorSpec(name='R', shape=[None, 3], dtype=tf.float32),
-                'batch_seg': tf.TensorSpec(name='batch_seg', shape=[None], dtype=tf.int32),
-                'idnb_i': tf.TensorSpec(name='idnb_i', shape=[None], dtype=tf.int32),
-                'idnb_j': tf.TensorSpec(name='idnb_j', shape=[None], dtype=tf.int32),
-                'id_expand_kj': tf.TensorSpec(name='id_expand_kj', shape=[None], dtype=tf.int32),
-                'id_reduce_ji': tf.TensorSpec(name='id_reduce_ji', shape=[None], dtype=tf.int32),
-                'id3dnb_i': tf.TensorSpec(name='id3dnb_i', shape=[None], dtype=tf.int32),
-                'id3dnb_j': tf.TensorSpec(name='id3dnb_j', shape=[None], dtype=tf.int32),
-                'id3dnb_k': tf.TensorSpec(name='id3dnb_k', shape=[None], dtype=tf.int32)
-                }])
     def call(self, inputs):
         Z, R                         = inputs['Z'], inputs['R']
         batch_seg                    = inputs['batch_seg']

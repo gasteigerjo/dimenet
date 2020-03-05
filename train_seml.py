@@ -70,6 +70,7 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
                      + "_" + comment)
     else:
         directory = restart
+    logging.info(f"Directory: {directory}")
 
     logging.info("Create directories")
     if not os.path.exists(directory):
