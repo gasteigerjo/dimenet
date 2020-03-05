@@ -121,13 +121,13 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
         # Save/load best recorded loss (only the best model is saved)
         if os.path.isfile(best_loss_file):
             loss_file = np.load(best_loss_file)
-            best_res = {k: v.item() for k, v in loss_file.items()}
+            metrics_best = {k: v.item() for k, v in loss_file.items()}
         else:
-            best_res = validation['metrics'].result()
-            for key in best_res.keys():
-                best_res[key] = np.inf
-            best_res['step'] = 0
-            np.savez(best_loss_file, **best_res)
+            metrics_best = validation['metrics'].result()
+            for key in metrics_best.keys():
+                metrics_best[key] = np.inf
+            metrics_best['step'] = 0
+            np.savez(best_loss_file, **metrics_best)
 
         # Initialize trainer
         trainer = Trainer(model, learning_rate, warmup_steps,
@@ -179,16 +179,16 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
                     trainer.test_on_batch(validation['dataset_iter'], validation['metrics'])
 
                 # Update and save best result
-                if validation['metrics'].mean_mae < best_res['mean_mae_val']:
-                        best_res['step'] = step
-                    best_res.update(validation['metrics'].result())
+                if validation['metrics'].mean_mae < metrics_best['mean_mae_val']:
+                    metrics_best['step'] = step
+                    metrics_best.update(validation['metrics'].result())
 
-                        np.savez(best_loss_file, **best_res)
+                    np.savez(best_loss_file, **metrics_best)
                         model.save_weights(best_ckpt_folder)
 
-                tf.summary.scalar("loss_best", best_res['loss_val'])
-                tf.summary.scalar("mean_mae_best", best_res['mean_mae_val'])
-                tf.summary.scalar("mean_log_mae_best", best_res['mean_log_mae_val'])
+                for key, val in metrics_best.items():
+                    if key != 'step':
+                        tf.summary.scalar(key + '_best', val)
 
                 epoch = step // steps_per_epoch
                 logging.info(
@@ -206,7 +206,4 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
                 # Restore backup variables
                 trainer.restore_variable_backups()
 
-    return({"step_best": best_res['step'],
-            "loss_best": best_res['loss_val'],
-            "mean_mae_best": best_res['mean_mae_val'],
-            "mean_log_mae_best": best_res['mean_log_mae_val']})
+    return({key + '_best': val for key, val in metrics_best.items()})
