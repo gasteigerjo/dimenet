@@ -57,7 +57,7 @@ class Trainer:
         inputs, targets = next(dataset_iter)
         with tf.GradientTape() as tape:
             preds = self.model(inputs, training=True)
-            mae = tf.keras.losses.MAE(targets, preds)
+            mae = tf.reduce_mean(tf.abs(targets - preds), axis=0)
             mean_mae = tf.reduce_mean(mae)
             loss = mean_mae
         self.update_weights(loss, tape)
@@ -69,7 +69,7 @@ class Trainer:
     def test_on_batch(self, dataset_iter, metrics):
         inputs, targets = next(dataset_iter)
         preds = self.model(inputs, training=False)
-        mae = tf.keras.losses.MAE(targets, preds)
+        mae = tf.reduce_mean(tf.abs(targets - preds), axis=0)
         mean_mae = tf.reduce_mean(mae)
         loss = mean_mae
         nsamples = tf.shape(preds)[0]
@@ -80,7 +80,7 @@ class Trainer:
     def predict_on_batch(self, dataset_iter, metrics):
         inputs, targets = next(dataset_iter)
         preds = self.model(inputs, training=False)
-        mae = tf.keras.losses.MAE(targets, preds)
+        mae = tf.reduce_mean(tf.abs(targets - preds), axis=0)
         mean_mae = tf.reduce_mean(mae)
         loss = mean_mae
         nsamples = tf.shape(preds)[0]

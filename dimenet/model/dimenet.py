@@ -129,5 +129,5 @@ class DimeNet(tf.keras.Model):
             x = self.int_blocks[i]([x, rbf, sbf, id_expand_kj, id_reduce_ji])
             P += self.output_blocks[i+1]([x, rbf, idnb_i, n_atoms])
 
-        P = tf.squeeze(tf.math.segment_sum(P, batch_seg))
+        P = tf.math.segment_sum(P, batch_seg)
         return P

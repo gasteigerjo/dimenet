@@ -118,14 +118,12 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
 
         logging.info("Prepare training")
         # Save/load best recorded loss (only the best model is saved)
-        save_keys = ['step', 'loss', 'mean_mae', 'mean_log_mae', *targets]
-        best_res = {}
         if os.path.isfile(best_loss_file):
             loss_file = np.load(best_loss_file)
-            for key in save_keys:
-                best_res[key] = loss_file[key].item()
+            best_res = {k: v.item() for k, v in loss_file.items()}
         else:
-            for key in save_keys[1:]:
+            best_res = validation['metrics'].result()
+            for key in best_res.keys():
                 best_res[key] = np.inf
             best_res['step'] = 0
             np.savez(best_loss_file, **best_res)
@@ -145,9 +143,8 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
             ckpt.restore(ckpt_restored)
 
         if ex is not None:
-            ex.current_run.info = {}
-            ex.current_run.info['directory'] = directory
-            ex.current_run.info['step'] = []
+            ex.current_run.info = {'directory': directory}
+
 
         # Training loop
         logging.info("Start training")
@@ -159,7 +156,6 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
             step_init = 1
         for step in range(step_init, num_steps + 1):
             # Update step number
-            epoch = step // steps_per_epoch
             ckpt.step.assign(step)
             tf.summary.experimental.set_step(step)
 
@@ -182,7 +178,7 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
                     trainer.test_on_batch(validation['dataset_iter'], validation['metrics'])
 
                 # Update and save best result
-                if validation["mean_mae_avg"] < best_res['mean_mae']:
+                if validation['metrics'].mean_mae < best_res['mean_mae_val']:
                         best_res['step'] = step
                     best_res.update(validation['metrics'].result())
 
@@ -193,6 +189,7 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
                 tf.summary.scalar("mean_mae_best", best_res['mean_mae_val'])
                 tf.summary.scalar("mean_log_mae_best", best_res['mean_log_mae_val'])
 
+                epoch = step // steps_per_epoch
                 logging.info(
                     f"{step}/{num_steps} (epoch {epoch+1}): "
                     f"Loss: train={train['metrics'].loss:.6f}, val={validation['metrics'].loss:.6f}; "
