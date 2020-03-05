@@ -10,7 +10,7 @@ slurm:
     gres: gpu:1
     mem:  16G
     cpus-per-task: 2
-    time: 1-00:00
+    time: 30-00:00
     partition: gpu_all
 
 fixed:
@@ -47,4 +47,20 @@ fixed:
   save_interval: 10000
   restart: None
   comment: "debug"
-  targets: ['U0']  # ['mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H', 'G', 'Cv']
+
+grid:
+  targets:
+    type: choice
+    options:
+      - ['mu']
+      - ['alpha']
+      - ['homo']
+      - ['lumo']
+      # - ['gap']
+      - ['r2']
+      - ['zpve']
+      - ['U0']
+      - ['U']
+      - ['H']
+      - ['G']
+      - ['Cv']
