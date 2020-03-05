@@ -174,8 +174,8 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
                 trainer.save_variable_backups()
                 trainer.load_averaged_variables()
 
-                    # Compute averages
-                    for i in range(int(np.ceil(num_valid / batch_size))):
+                # Compute averages
+                for i in range(int(np.ceil(num_valid / batch_size))):
                     trainer.test_on_batch(validation['dataset_iter'], validation['metrics'])
 
                 # Update and save best result
@@ -184,7 +184,7 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
                     metrics_best.update(validation['metrics'].result())
 
                     np.savez(best_loss_file, **metrics_best)
-                        model.save_weights(best_ckpt_folder)
+                    model.save_weights(best_ckpt_folder)
 
                 for key, val in metrics_best.items():
                     if key != 'step':
