@@ -82,7 +82,7 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     best_loss_file = os.path.join(best_dir, 'best_loss.npz')
-    best_ckpt_folder = best_dir
+    best_ckpt_file = os.path.join(best_dir, 'ckpt')
     step_ckpt_folder = log_dir
 
     # Initialize summary writer
@@ -146,7 +146,6 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
         if ex is not None:
             ex.current_run.info = {'directory': directory}
 
-
         # Training loop
         logging.info("Start training")
         steps_per_epoch = int(np.ceil(num_train / batch_size))
@@ -184,7 +183,7 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
                     metrics_best.update(validation['metrics'].result())
 
                     np.savez(best_loss_file, **metrics_best)
-                    model.save_weights(best_ckpt_folder)
+                    model.save_weights(best_ckpt_file)
 
                 for key, val in metrics_best.items():
                     if key != 'step':
