@@ -25,7 +25,7 @@ class Metrics:
             if self.ex is not None:
                 if key not in self.ex.current_run.info:
                     self.ex.current_run.info[key] = []
-                self.ex.current_run.info[key].append(val)
+                self.ex.current_run.info[key].append(val.numpy().item())
 
         if self.ex is not None:
             if f'step_{self.tag}' not in self.ex.current_run.info:
