@@ -26,11 +26,13 @@ class EmbeddingBlock(layers.Layer):
         Z, rbf, idnb_i, idnb_j = inputs
 
         rbf = self.dense_rbf(rbf)
-        x = tf.gather(self.embeddings, Z)
 
-        x1 = tf.gather(x, idnb_i)
-        x2 = tf.gather(x, idnb_j)
+        Z_i = tf.gather(Z, idnb_i)
+        Z_j = tf.gather(Z, idnb_j)
 
-        x = tf.concat([x1, x2, rbf], axis=-1)
+        x_i = tf.gather(self.embeddings, Z_i)
+        x_j = tf.gather(self.embeddings, Z_j)
+
+        x = tf.concat([x_i, x_j, rbf], axis=-1)
         x = self.dense(x)
         return x
