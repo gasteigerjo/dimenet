@@ -11,12 +11,8 @@ Reference implementation of the DimeNet model proposed in the paper:
 by Johannes Klicpera, Janek Groß, Stephan Günnemann   
 Published at ICLR 2020.
 
-## TensorFlow 2
-
-For this implementation we have migrated the original code to TensorFlow 2. The predictions are the same but we observe an increased runtime of 70% compared to the original TensorFlow 1 implementation, despite extensive efforts to mitigate this. Since GPU profiling is currently broken in TensorFlow 2.1 (see https://github.com/tensorflow/tensorboard/issues/3256), we can't investigate the issue further. We will have to wait until profiling is fixed or a new, faster TensorFlow version comes out.
-
 ## Run the code
-This repository contains a notebook for training the model (`train.ipynb`) and for generating predictions on the test set with a trained model (`predict.ipynb`). It also contains a script for training the model on a cluster with Sacred and [SEML](https://github.com/TUM-DAML/seml) (`train_seml.py`).
+This repository contains a notebook for training the model (`train.ipynb`) and for generating predictions on the test set with a trained model (`predict.ipynb`). It also contains a script for training the model on a cluster with Sacred and [SEML](https://github.com/TUM-DAML/seml) (`train_seml.py`). Note that this model is not optimized for runtime.
 
 ## Architecture
 
