@@ -18,7 +18,7 @@ class OutputBlock(layers.Layer):
                 layers.Dense(emb_size, activation=activation, use_bias=True,
                              kernel_initializer=weight_init))
         self.dense_final = layers.Dense(num_targets, use_bias=False,
-                                        kernel_initializer=weight_init) # 'zeros')
+                                        kernel_initializer='zeros')
 
     def call(self, inputs):
         x, rbf, idnb_i, n_atoms = inputs

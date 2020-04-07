@@ -30,5 +30,5 @@ batch_size: 32
 evaluation_interval: 10000
 save_interval: 10000
 restart: None
-comment: "debug"
+comment: "final"
 targets: ['U0']  # ['mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H', 'G', 'Cv']

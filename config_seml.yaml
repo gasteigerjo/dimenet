@@ -46,7 +46,7 @@ fixed:
   evaluation_interval: 10000
   save_interval: 10000
   restart: None
-  comment: "debug"
+  comment: "final"
 
 grid:
   targets:
