@@ -12,13 +12,17 @@ by Johannes Klicpera, Janek Groß, Stephan Günnemann
 Published at ICLR 2020.
 
 ## Run the code
-This repository contains a notebook for training the model (`train.ipynb`) and for generating predictions on the test set with a trained model (`predict.ipynb`). It also contains a script for training the model on a cluster with Sacred and [SEML](https://github.com/TUM-DAML/seml) (`train_seml.py`). Note that this model is not optimized for runtime.
+This repository contains a notebook for training the model (`train.ipynb`) and for generating predictions on the test set with a trained model (`predict.ipynb`). It also contains a script for training the model on a cluster with Sacred and [SEML](https://github.com/TUM-DAML/seml) (`train_seml.py`).
 
 ## Architecture
 
 <p align="center">
 <img src="https://github.com/klicperajo/dimenet/blob/master/architecture.svg?raw=true&sanitize=true">
 </p>
+
+## Training time
+
+Training the original DimeNet architecture is rather slow (around 20 days for 3M steps on an Nvidia GTX 1080Ti). We are currently looking into ways of improving this. One simple and amazingly effective tweak is exchanging the bilinear layer in the interaction block with a simple Hadamard product, which yields roughly a 4x improvement without sacrificing any performance.
 
 ## Requirements
 The repository uses these packages:
