@@ -32,8 +32,9 @@ tf.autograph.set_verbosity(1)
 def config():
     overwrite = None
     db_collection = None
-    ex.observers.append(db_utils.create_mongodb_observer(
-        db_collection, overwrite=overwrite))
+    if db_collection is not None:
+        ex.observers.append(db_utils.create_mongodb_observer(
+                db_collection, overwrite=overwrite))
 
 
 @ex.automain

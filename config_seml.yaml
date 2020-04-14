@@ -2,9 +2,10 @@
 seml:
   executable: 'train_seml.py'
   db_collection: 'dimenet'
+  output_dir: '~/logs'
+  conda_environment: 'tensorflow'
 
 slurm:
-  output_dir: '~/logs'
   experiments_per_job: 1
   sbatch_options:
     gres: gpu:1
