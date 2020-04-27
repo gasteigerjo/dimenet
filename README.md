@@ -22,7 +22,7 @@ This repository contains a notebook for training the model (`train.ipynb`) and f
 
 ## Training time
 
-Training the original DimeNet architecture is rather slow (around 20 days for 3M steps on an Nvidia GTX 1080Ti). We are currently looking into ways of improving this. One simple and amazingly effective tweak is exchanging the bilinear layer in the interaction block with a simple Hadamard product, which yields roughly a 4x improvement without sacrificing any performance.
+Training the original DimeNet architecture is rather slow (around 20 days for 3M steps on an Nvidia GTX 1080Ti). We are currently looking into ways of improving this. One simple and amazingly effective tweak is exchanging the bilinear layer in the interaction block with a simple Hadamard product, while transforming the 2D basis embedding a_SBF with an MLP instead of a linear layer. This yields roughly a 4x improvement without sacrificing any performance.
 
 ## Requirements
 The repository uses these packages:
