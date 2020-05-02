@@ -24,7 +24,7 @@ This repository contains a notebook for training the model (`train.ipynb`) and f
 
 For faster experimentation we offer a set of pretrained models, which you can find in the `pretrained` folder. On average, these models _outperform_ the results reported in the paper by 3% (see table below).
 
-This was in part achieved by using orthogonal Glorot initialization in the output layer for the targets alpha, R2, U0, U, H, G, and Cv, while using zero initialization for Mu, HOMO, LUMO, and ZPVE. The paper used the exact same architecture and hyperparameters in all experiments. It only used zero initialization for the output layer.
+This difference is due to slightly different training and initialization in TF2 and to using orthogonal Glorot initialization in the output layer for the targets alpha, R2, U0, U, H, G, and Cv, while using zero initialization for Mu, HOMO, LUMO, and ZPVE. The paper used the exact same architecture and hyperparameters in all experiments. It only used zero initialization for the output layer.
 
 <p align="left">
 <img src="https://github.com/klicperajo/dimenet/blob/master/results_qm9_tf2.svg?raw=true&sanitize=true">
