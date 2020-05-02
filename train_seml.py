@@ -15,12 +15,10 @@ from dimenet.training.data_container import DataContainer
 from dimenet.training.data_provider import DataProvider
 
 from sacred import Experiment
-
-from seml import database_utils as db_utils
-from seml import misc
+import seml
 
 ex = Experiment()
-misc.setup_logger(ex)
+seml.setup_logger(ex)
 
 # TensorFlow logging verbosity
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
@@ -33,7 +31,7 @@ def config():
     overwrite = None
     db_collection = None
     if db_collection is not None:
-        ex.observers.append(db_utils.create_mongodb_observer(
+        ex.observers.append(seml.create_mongodb_observer(
                 db_collection, overwrite=overwrite))
 
 

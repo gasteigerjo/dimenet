@@ -1,7 +1,6 @@
 
 seml:
   executable: 'train_seml.py'
-  db_collection: 'dimenet'
   output_dir: '~/logs'
   conda_environment: 'tensorflow'
 
