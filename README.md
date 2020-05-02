@@ -26,7 +26,7 @@ For faster experimentation we offer a set of pretrained models, which you can fi
 
 This was in part achieved by using orthogonal Glorot initialization in the output layer for the targets alpha, R2, U0, U, H, G, and Cv, while using zero initialization for Mu, HOMO, LUMO, and ZPVE. The paper used the exact same architecture and hyperparameters in all experiments. It only used zero initialization for the output layer.
 
-<p align="center">
+<p align="left">
 <img src="https://github.com/klicperajo/dimenet/blob/master/results_qm9_tf2.svg?raw=true&sanitize=true">
 </p>
 
