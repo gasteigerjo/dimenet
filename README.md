@@ -20,6 +20,16 @@ This repository contains a notebook for training the model (`train.ipynb`) and f
 <img src="https://github.com/klicperajo/dimenet/blob/master/architecture.svg?raw=true&sanitize=true">
 </p>
 
+## Pretrained models
+
+For faster experimentation we offer a set of pretrained models, which you can find in the `pretrained` folder. On average, these models _outperform_ the results reported in the paper by 3% (see table below).
+
+This was in part achieved by using orthogonal Glorot initialization in the output layer for the targets alpha, R2, U0, U, H, G, and Cv, while using zero initialization for Mu, HOMO, LUMO, and ZPVE. The paper used the exact same architecture and hyperparameters in all experiments. It only used zero initialization for the output layer.
+
+<p align="center">
+<img src="https://github.com/klicperajo/dimenet/blob/master/results_qm9_tf2.svg?raw=true&sanitize=true">
+</p>
+
 ## Training time
 
 Training the original DimeNet architecture is rather slow (around 20 days for 3M steps on an Nvidia GTX 1080Ti). We are currently looking into ways of improving this. One simple and amazingly effective tweak is exchanging the bilinear layer in the interaction block with a simple Hadamard product, while transforming the 2D basis embedding a_SBF with an MLP instead of a linear layer. This yields roughly a 4x improvement without sacrificing any performance.
