@@ -32,7 +32,7 @@ This difference is due to slightly different training and initialization in TF2 
 
 ## Training time
 
-Training the original DimeNet architecture is rather slow (around 20 days for 3M steps on an Nvidia GTX 1080Ti). We are currently looking into ways of improving this. One simple and amazingly effective tweak is exchanging the bilinear layer in the interaction block with a simple Hadamard product, while transforming the 2D basis embedding a_SBF with an MLP instead of a linear layer. This yields roughly a 4x improvement without sacrificing any performance.
+Training the original DimeNet architecture is rather slow (around 20 days for 3M steps on an Nvidia GTX 1080Ti). We are currently working on reducing this and have so far achieved a 10x speedup while further improving the accuracy. Feel free to contact us for details if you are interested in using DimeNet for a novel application.
 
 ## Requirements
 The repository uses these packages:
