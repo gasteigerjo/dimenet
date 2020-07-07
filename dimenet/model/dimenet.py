@@ -84,7 +84,7 @@ class DimeNet(tf.keras.Model):
         Rj = tf.gather(R, id3_j)
         Rk = tf.gather(R, id3_k)
         R1 = Rj - Ri
-        R2 = Rk - Ri
+        R2 = Rk - Ri  # This should actually be `Rk - Rj`. Change it if you're not using a pretrained model, since the correct version performs better.
         x = tf.reduce_sum(R1 * R2, axis=-1)
         y = tf.linalg.cross(R1, R2)
         y = tf.norm(y, axis=-1)
