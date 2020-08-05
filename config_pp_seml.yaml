@@ -1,6 +1,6 @@
 
 seml:
-  executable: 'train_pp_seml.py'
+  executable: 'train_seml.py'
   output_dir: '~/logs'
   conda_environment: 'tensorflow'
   project_root_dir: '.'
@@ -11,10 +11,12 @@ slurm:
     gres: gpu:1
     mem:  16G
     cpus-per-task: 2
-    time: 7-00:00
-    partition: ubuntu20test
+    time: 30-00:00
+    partition: gpu_all
 
 fixed:
+  model_name: "dimenet++"
+
   emb_size: 128
   out_emb_size: 256
   int_emb_size: 32

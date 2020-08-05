@@ -8,6 +8,7 @@ import random
 from datetime import datetime
 
 from dimenet.model.dimenet import DimeNet
+from dimenet.model.dimenet_pp import DimeNetPP
 from dimenet.model.activations import swish
 from dimenet.training.trainer import Trainer
 from dimenet.training.metrics import Metrics
@@ -34,9 +35,15 @@ def config():
         ex.observers.append(seml.create_mongodb_observer(
                 db_collection, overwrite=overwrite))
 
+    out_emb_size = None
+    int_emb_size = None
+    basis_emb_size = None
+    num_bilinear = None
+
 
 @ex.automain
-def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
+def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
+        num_blocks, num_bilinear, num_spherical, num_radial,
         num_before_skip, num_after_skip, num_dense_output,
         cutoff, envelope_exponent, dataset, num_train, num_valid,
         data_seed, num_steps, learning_rate, ema_decay,
@@ -51,22 +58,48 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
     # Create directories
     # A unique directory name is created for this run based on the input
     if restart is None:
-        directory = (logdir + "/" + datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + id_generator()
-                     + "_" + os.path.basename(dataset)
-                     + "_e" + str(emb_size)
-                     + "_bi" + str(num_bilinear)
-                     + "_sbf" + str(num_spherical)
-                     + "_rbf" + str(num_radial)
-                     + "_b" + str(num_blocks)
-                     + "_nbs" + str(num_before_skip)
-                     + "_nas" + str(num_after_skip)
-                     + "_no" + str(num_dense_output)
-                     + "_cut" + str(cutoff)
-                     + "_env" + str(envelope_exponent)
-                     + f"_lr{learning_rate:.2e}"
-                     + f"_dec{decay_steps:.2e}"
-                     + "_" + '-'.join(targets)
-                     + "_" + comment)
+        if model_name == "dimenet":
+            directory = (
+                    logdir + "/" + datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + id_generator()
+                    + "_" + os.path.basename(dataset)
+                    + "_e" + str(emb_size)
+                    + "_bi" + str(num_bilinear)
+                    + "_sbf" + str(num_spherical)
+                    + "_rbf" + str(num_radial)
+                    + "_b" + str(num_blocks)
+                    + "_nbs" + str(num_before_skip)
+                    + "_nas" + str(num_after_skip)
+                    + "_no" + str(num_dense_output)
+                    + "_cut" + str(cutoff)
+                    + "_env" + str(envelope_exponent)
+                    + f"_lr{learning_rate:.2e}"
+                    + f"_dec{decay_steps:.2e}"
+                    + "_" + '-'.join(targets)
+                    + "_" + comment
+            )
+        elif model_name == "dimenet++":
+            directory = (
+                    logdir + "/" + datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + id_generator()
+                    + "_" + os.path.basename(dataset)
+                    + "_e" + str(emb_size)
+                    + "_oe" + str(out_emb_size)
+                    + "_ie" + str(int_emb_size)
+                    + "_be" + str(basis_emb_size)
+                    + "_sbf" + str(num_spherical)
+                    + "_rbf" + str(num_radial)
+                    + "_b" + str(num_blocks)
+                    + "_nbs" + str(num_before_skip)
+                    + "_nas" + str(num_after_skip)
+                    + "_no" + str(num_dense_output)
+                    + "_cut" + str(cutoff)
+                    + "_env" + str(envelope_exponent)
+                    + f"_lr{learning_rate:.2e}"
+                    + f"_dec{decay_steps:.2e}"
+                    + "_" + '-'.join(targets)
+                    + "_" + comment
+            )
+        else:
+            raise ValueError(f"Unknown model name: '{model_name}'")
     else:
         directory = restart
     logging.info(f"Directory: {directory}")
@@ -109,12 +142,25 @@ def run(emb_size, num_blocks, num_bilinear, num_spherical, num_radial,
         validation['dataset_iter'] = iter(validation['dataset'])
 
         logging.info("Initialize model")
-        model = DimeNet(emb_size=emb_size, num_blocks=num_blocks, num_bilinear=num_bilinear,
-                        num_spherical=num_spherical, num_radial=num_radial,
-                        cutoff=cutoff, envelope_exponent=envelope_exponent,
-                        num_before_skip=num_before_skip, num_after_skip=num_after_skip,
-                        num_dense_output=num_dense_output, num_targets=len(targets),
-                        activation=swish)
+        if model_name == "dimenet":
+            model = DimeNet(
+                    emb_size=emb_size, num_blocks=num_blocks, num_bilinear=num_bilinear,
+                    num_spherical=num_spherical, num_radial=num_radial,
+                    cutoff=cutoff, envelope_exponent=envelope_exponent,
+                    num_before_skip=num_before_skip, num_after_skip=num_after_skip,
+                    num_dense_output=num_dense_output, num_targets=len(targets),
+                    activation=swish)
+        elif model_name == "dimenet++":
+            model = DimeNetPP(
+                    emb_size=emb_size, out_emb_size=out_emb_size,
+                    int_emb_size=int_emb_size, basis_emb_size=basis_emb_size,
+                    num_blocks=num_blocks, num_spherical=num_spherical, num_radial=num_radial,
+                    cutoff=cutoff, envelope_exponent=envelope_exponent,
+                    num_before_skip=num_before_skip, num_after_skip=num_after_skip,
+                    num_dense_output=num_dense_output, num_targets=len(targets),
+                    activation=swish)
+        else:
+            raise ValueError(f"Unknown model name: '{model_name}'")
 
         logging.info("Prepare training")
         # Save/load best recorded loss (only the best model is saved)
