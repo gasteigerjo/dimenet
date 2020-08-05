@@ -43,7 +43,7 @@ def config():
 
 @ex.automain
 def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
-        num_blocks, num_bilinear, num_spherical, num_radial,
+        num_blocks, num_bilinear, num_spherical, num_radial, output_init,
         num_before_skip, num_after_skip, num_dense_output,
         cutoff, envelope_exponent, dataset, num_train, num_valid,
         data_seed, num_steps, learning_rate, ema_decay,
@@ -127,6 +127,10 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
     train['metrics'] = Metrics('train', targets, ex)
     validation['metrics'] = Metrics('val', targets, ex)
 
+    # tf.config.experimental_run_functions_eagerly(True)
+    # tf.summary.trace_on(graph=True, profiler=False)
+    # tf.profiler.experimental.start(log_dir)
+
     with summary_writer.as_default():
         logging.info("Load dataset")
         data_container = DataContainer(dataset, cutoff=cutoff, target_keys=targets)
@@ -149,7 +153,7 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
                     cutoff=cutoff, envelope_exponent=envelope_exponent,
                     num_before_skip=num_before_skip, num_after_skip=num_after_skip,
                     num_dense_output=num_dense_output, num_targets=len(targets),
-                    activation=swish)
+                    activation=swish, output_init=output_init)
         elif model_name == "dimenet++":
             model = DimeNetPP(
                     emb_size=emb_size, out_emb_size=out_emb_size,
@@ -158,7 +162,7 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
                     cutoff=cutoff, envelope_exponent=envelope_exponent,
                     num_before_skip=num_before_skip, num_after_skip=num_after_skip,
                     num_dense_output=num_dense_output, num_targets=len(targets),
-                    activation=swish)
+                    activation=swish, output_init=output_init)
         else:
             raise ValueError(f"Unknown model name: '{model_name}'")
 
@@ -191,6 +195,9 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
         if ex is not None:
             ex.current_run.info = {'directory': directory}
 
+        # import time
+        # start = time.time()
+
         # Training loop
         logging.info("Start training")
         steps_per_epoch = int(np.ceil(num_train / batch_size))
@@ -210,6 +217,10 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
             # Save progress
             if (step % save_interval == 0):
                 manager.save()
+
+            # if step % 10 == 0:
+            #     logging.info(f"{step}: {time.time() - start:.2f}s")
+            #     start = time.time()
 
             # Check performance on the validation set
             if (step % evaluation_interval == 0):
@@ -249,5 +260,10 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
 
                 # Restore backup variables
                 trainer.restore_variable_backups()
+
+        # tf.summary.trace_export(
+        #     name='dimenet',
+        #     profiler_outdir=log_dir)
+    # tf.profiler.experimental.stop()
 
     return({key + '_best': val for key, val in metrics_best.items()})

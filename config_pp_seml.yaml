@@ -51,21 +51,32 @@ fixed:
   evaluation_interval: 10000
   save_interval: 10000
   restart: None
-  comment: "DimeNet++ p2"
+  comment: "DimeNet++"
 
-grid:
-  targets:
-    type: choice
-    options:
-      - ['mu']
-      - ['alpha']
-      - ['homo']
-      - ['lumo']
-      # - ['gap']
-      - ['r2']
-      - ['zpve']
-      - ['U0']
-      - ['U']
-      - ['H']
-      - ['G']
-      - ['Cv']
+zero_init:
+  fixed:
+    output_init: 'zeros'
+  grid:
+    targets:
+      type: choice
+      options:
+        - ['mu']
+        - ['homo']
+        - ['lumo']
+        # - ['gap']
+        - ['zpve']
+
+glorot_init:
+  fixed:
+    output_init: 'GlorotOrthogonal'
+  grid:
+    targets:
+      type: choice
+      options:
+        - ['alpha']
+        - ['r2']
+        - ['U0']
+        - ['U']
+        - ['H']
+        - ['G']
+        - ['Cv']

@@ -23,6 +23,7 @@ fixed:
   num_bilinear: 8
   num_spherical: 7
   num_radial: 6
+  output_init: 'zeros'
 
   cutoff: 5.0
   envelope_exponent: 5

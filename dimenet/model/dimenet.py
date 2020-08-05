@@ -38,15 +38,15 @@ class DimeNet(tf.keras.Model):
         Number of targets to predict
     activation
         Activation function
-    seed
-        Random seed for weight initialization
+    output_init
+        Initialization method for the output layer (last layer in output block)
     """
 
     def __init__(
             self, emb_size, num_blocks, num_bilinear, num_spherical,
             num_radial, cutoff=5.0, envelope_exponent=5, num_before_skip=1,
             num_after_skip=2, num_dense_output=3, num_targets=12,
-            activation=swish, name='dimenet', **kwargs):
+            activation=swish, output_init='zeros', name='dimenet', **kwargs):
         super().__init__(name=name, **kwargs)
         self.num_blocks = num_blocks
 
@@ -60,7 +60,8 @@ class DimeNet(tf.keras.Model):
         self.output_blocks = []
         self.emb_block = EmbeddingBlock(emb_size, activation=activation)
         self.output_blocks.append(
-            OutputBlock(emb_size, num_dense_output, num_targets, activation=activation))
+            OutputBlock(emb_size, num_dense_output, num_targets,
+                        activation=activation, output_init=output_init))
 
         # Interaction and remaining output blocks
         self.int_blocks = []
@@ -69,7 +70,8 @@ class DimeNet(tf.keras.Model):
                 InteractionBlock(emb_size, num_bilinear, num_before_skip,
                                  num_after_skip, activation=activation))
             self.output_blocks.append(
-                OutputBlock(emb_size, num_dense_output, num_targets, activation=activation))
+                OutputBlock(emb_size, num_dense_output, num_targets,
+                            activation=activation, output_init=output_init))
 
     def calculate_interatomic_distances(self, R, idx_i, idx_j):
         Ri = tf.gather(R, idx_i)
