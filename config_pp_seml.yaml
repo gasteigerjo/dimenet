@@ -21,7 +21,7 @@ fixed:
   out_emb_size: 256
   int_emb_size: 32
   basis_emb_size: 8
-  num_blocks: 6
+  num_blocks: 4
 
   num_spherical: 7
   num_radial: 6
