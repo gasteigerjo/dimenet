@@ -19,7 +19,7 @@ fixed:
 
   emb_size: 128
   out_emb_size: 256
-  int_emb_size: 32
+  int_emb_size: 64
   basis_emb_size: 8
   num_blocks: 4
 
