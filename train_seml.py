@@ -141,8 +141,10 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
 
         # Initialize datasets
         train['dataset'] = data_provider.get_dataset('train').prefetch(tf.data.experimental.AUTOTUNE)
+        # train['dataset'] = data_provider.get_idx_dataset('train').map(data_provider.idx_to_data_tf, num_parallel_calls=4)
         train['dataset_iter'] = iter(train['dataset'])
         validation['dataset'] = data_provider.get_dataset('val').prefetch(tf.data.experimental.AUTOTUNE)
+        # validation['dataset'] = data_provider.get_idx_dataset('val').map(data_provider.idx_to_data_tf, num_parallel_calls=4)
         validation['dataset_iter'] = iter(validation['dataset'])
 
         logging.info("Initialize model")
