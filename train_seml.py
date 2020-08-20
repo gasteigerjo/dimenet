@@ -127,10 +127,6 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
     train['metrics'] = Metrics('train', targets, ex)
     validation['metrics'] = Metrics('val', targets, ex)
 
-    # tf.config.experimental_run_functions_eagerly(True)
-    # tf.summary.trace_on(graph=True, profiler=False)
-    # tf.profiler.experimental.start(log_dir)
-
     with summary_writer.as_default():
         logging.info("Load dataset")
         data_container = DataContainer(dataset, cutoff=cutoff, target_keys=targets)
@@ -141,10 +137,8 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
 
         # Initialize datasets
         train['dataset'] = data_provider.get_dataset('train').prefetch(tf.data.experimental.AUTOTUNE)
-        # train['dataset'] = data_provider.get_idx_dataset('train').map(data_provider.idx_to_data_tf, num_parallel_calls=4)
         train['dataset_iter'] = iter(train['dataset'])
         validation['dataset'] = data_provider.get_dataset('val').prefetch(tf.data.experimental.AUTOTUNE)
-        # validation['dataset'] = data_provider.get_idx_dataset('val').map(data_provider.idx_to_data_tf, num_parallel_calls=4)
         validation['dataset_iter'] = iter(validation['dataset'])
 
         logging.info("Initialize model")
@@ -197,9 +191,6 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
         if ex is not None:
             ex.current_run.info = {'directory': directory}
 
-        # import time
-        # start = time.time()
-
         # Training loop
         logging.info("Start training")
         steps_per_epoch = int(np.ceil(num_train / batch_size))
@@ -219,10 +210,6 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
             # Save progress
             if (step % save_interval == 0):
                 manager.save()
-
-            # if step % 10 == 0:
-            #     logging.info(f"{step}: {time.time() - start:.2f}s")
-            #     start = time.time()
 
             # Check performance on the validation set
             if (step % evaluation_interval == 0):
@@ -262,10 +249,5 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
 
                 # Restore backup variables
                 trainer.restore_variable_backups()
-
-        # tf.summary.trace_export(
-        #     name='dimenet',
-        #     profiler_outdir=log_dir)
-    # tf.profiler.experimental.stop()
 
     return({key + '_best': val for key, val in metrics_best.items()})
