@@ -18,7 +18,7 @@ This repository contains a notebook for training the model (`train.ipynb`) and f
 
 ## DimeNet++ and TF2
 
-The new DimeNet++ model is both 10x faster and 10% more accurate, so we recommend using this model instead of the original.
+The new DimeNet++ model is both 10x faster and 10% more accurate, so we recommend using this model instead of the original. These improvements have not yet been published in a paper, but feel free to use it anyway (just cite the original paper). DimeNet++ was developed with the help of Shankari Giri.
 
 There are some slight differences between this repository and the original (TF1) DimeNet model, such as slightly different training and initialization in TF2. This implementation uses orthogonal Glorot initialization in the output layer for the targets alpha, R2, U0, U, H, G, and Cv and zero initialization for Mu, HOMO, LUMO, and ZPVE. The paper only used zero initialization for the output layer.
 
