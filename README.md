@@ -1,4 +1,4 @@
-# Directional Message Passing Neural Network (DimeNet)
+# Directional Message Passing Neural Network (DimeNet and DimeNet++)
 
 <p align="center">
 <img src="https://github.com/klicperajo/dimenet/blob/master/2dfilters_large_layer2.png?raw=true">
@@ -11,28 +11,36 @@ Reference implementation of the DimeNet model proposed in the paper:
 by Johannes Klicpera, Janek Groß, Stephan Günnemann   
 Published at ICLR 2020.
 
+As well as its successor, DimeNet++.
+
 ## Run the code
-This repository contains a notebook for training the model (`train.ipynb`) and for generating predictions on the test set with a trained model (`predict.ipynb`). It also contains a script for training the model on a cluster with Sacred and [SEML](https://github.com/TUM-DAML/seml) (`train_seml.py`).
+This repository contains a notebook for training the model (`train.ipynb`) and for generating predictions on the test set with a trained model (`predict.ipynb`). It also contains a script for training the model on a cluster with Sacred and [SEML](https://github.com/TUM-DAML/seml) (`train_seml.py`). For faster experimentation we also offer two sets of pretrained models, which you can find in the `pretrained` folder.
+
+## DimeNet++ and TF2
+
+The new DimeNet++ model is both 10x faster and 10% more accurate, so we recommend using this model instead of the original.
+
+There are some slight differences between this repository and the original (TF1) DimeNet model, such as slightly different training and initialization in TF2. This implementation uses orthogonal Glorot initialization in the output layer for the targets alpha, R2, U0, U, H, G, and Cv and zero initialization for Mu, HOMO, LUMO, and ZPVE. The paper only used zero initialization for the output layer.
+
+The following table gives an overview of all MAEs:
+
+<p align="left">
+<img src="https://github.com/klicperajo/dimenet/blob/master/results_qm9_tf2_pp.svg?raw=true&sanitize=true">
+</p>
 
 ## Architecture
+
+### DimeNet
 
 <p align="center">
 <img src="https://github.com/klicperajo/dimenet/blob/master/architecture.svg?raw=true&sanitize=true">
 </p>
 
-## Pretrained models
+### DimeNet++
 
-For faster experimentation we offer a set of pretrained models, which you can find in the `pretrained` folder. On average, these models _outperform_ the results reported in the paper by 3% (see table below).
-
-This difference is due to slightly different training and initialization in TF2 and to using orthogonal Glorot initialization in the output layer for the targets alpha, R2, U0, U, H, G, and Cv, while using zero initialization for Mu, HOMO, LUMO, and ZPVE. The paper used the exact same architecture and hyperparameters in all experiments. It only used zero initialization for the output layer.
-
-<p align="left">
-<img src="https://github.com/klicperajo/dimenet/blob/master/results_qm9_tf2.svg?raw=true&sanitize=true">
+<p align="center">
+<img src="https://github.com/klicperajo/dimenet/blob/master/architecture_pp.svg?raw=true&sanitize=true">
 </p>
-
-## Training time
-
-Training the original DimeNet architecture is rather slow (around 20 days for 3M steps on an Nvidia GTX 1080Ti). We are currently working on reducing this and have so far achieved a 10x speedup while further improving the accuracy. Feel free to contact us for details if you are interested in using DimeNet for a novel application.
 
 ## Requirements
 The repository uses these packages:
