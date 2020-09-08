@@ -39,12 +39,13 @@ def config():
     int_emb_size = None
     basis_emb_size = None
     num_bilinear = None
+    extensive = True
 
 
 @ex.automain
 def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
         num_blocks, num_bilinear, num_spherical, num_radial, output_init,
-        num_before_skip, num_after_skip, num_dense_output,
+        extensive, num_before_skip, num_after_skip, num_dense_output,
         cutoff, envelope_exponent, dataset, num_train, num_valid,
         data_seed, num_steps, learning_rate, ema_decay,
         decay_steps, warmup_steps, decay_rate, batch_size,
@@ -158,7 +159,7 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
                     cutoff=cutoff, envelope_exponent=envelope_exponent,
                     num_before_skip=num_before_skip, num_after_skip=num_after_skip,
                     num_dense_output=num_dense_output, num_targets=len(targets),
-                    activation=swish, output_init=output_init)
+                    activation=swish, extensive=extensive, output_init=output_init)
         else:
             raise ValueError(f"Unknown model name: '{model_name}'")
 

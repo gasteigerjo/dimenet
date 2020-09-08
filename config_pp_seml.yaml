@@ -26,6 +26,7 @@ fixed:
   num_spherical: 7
   num_radial: 6
 
+  extensive: True
   cutoff: 5.0
   envelope_exponent: 5
 

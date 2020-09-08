@@ -42,6 +42,8 @@ class DimeNetPP(tf.keras.Model):
         Number of targets to predict
     activation
         Activation function
+    extensive
+        Whether the output should be extensive (proportional to the number of atoms)
     output_init
         Initialization method for the output layer (last layer in output block)
     """
@@ -51,9 +53,11 @@ class DimeNetPP(tf.keras.Model):
             num_blocks, num_spherical, num_radial,
             cutoff=5.0, envelope_exponent=5, num_before_skip=1,
             num_after_skip=2, num_dense_output=3, num_targets=12,
-            activation=swish, output_init='zeros', name='dimenet', **kwargs):
+            activation=swish, extensive=True, output_init='zeros',
+            name='dimenet', **kwargs):
         super().__init__(name=name, **kwargs)
         self.num_blocks = num_blocks
+        self.extensive = extensive
 
         # Cosine basis function expansion layer
         self.rbf_layer = BesselBasisLayer(
@@ -124,5 +128,8 @@ class DimeNetPP(tf.keras.Model):
             x = self.int_blocks[i]([x, rbf, sbf, id_expand_kj, id_reduce_ji])
             P += self.output_blocks[i+1]([x, rbf, idnb_i, n_atoms])
 
-        P = tf.math.segment_sum(P, batch_seg)
+        if self.extensive:
+            P = tf.math.segment_sum(P, batch_seg)
+        else:
+            P = tf.math.segment_mean(P, batch_seg)
         return P
