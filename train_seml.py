@@ -250,4 +250,4 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
                 # Restore backup variables
                 trainer.restore_variable_backups()
 
-    return({key + '_best': val for key, val in metrics_best.items()})
+    return({key + '_best': val.numpy().item() for key, val in metrics_best.items()})
