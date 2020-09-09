@@ -251,4 +251,12 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
                 # Restore backup variables
                 trainer.restore_variable_backups()
 
-    return({key + '_best': val.numpy().item() for key, val in metrics_best.items()})
+    # Construct result dictionary
+    result_dict = {}
+    for key, val in metrics_best.items():
+        if isinstance(val, tf.Tensor):
+            result_dict[key + '_best'] = val.numpy().item()
+        else:
+            result_dict[key + '_best'] = val
+
+    return result_dict
