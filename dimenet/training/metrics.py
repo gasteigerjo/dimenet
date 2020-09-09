@@ -10,13 +10,13 @@ class Metrics:
 
         self.loss_metric = tf.keras.metrics.Mean()
         self.mean_mae_metric = tf.keras.metrics.Mean()
-        self.mae_metric = tf.keras.metrics.MeanTensor()
-        self.mae_metric.update_state([0] * len(targets), sample_weight=[0] * len(targets))
+        self.maes_metric = tf.keras.metrics.MeanTensor()
+        self.maes_metric.update_state([0] * len(targets), sample_weight=[0] * len(targets))
 
     def update_state(self, loss, mean_mae, mae, nsamples):
         self.loss_metric.update_state(loss, sample_weight=nsamples)
         self.mean_mae_metric.update_state(mean_mae, sample_weight=nsamples)
-        self.mae_metric.update_state(mae, sample_weight=nsamples)
+        self.maes_metric.update_state(mae, sample_weight=nsamples)
 
     def write(self):
         """Write metrics to tf.summary and the Sacred experiment."""
@@ -25,7 +25,7 @@ class Metrics:
             if self.ex is not None:
                 if key not in self.ex.current_run.info:
                     self.ex.current_run.info[key] = []
-                self.ex.current_run.info[key].append(val.numpy().item())
+                self.ex.current_run.info[key].append(val)
 
         if self.ex is not None:
             if f'step_{self.tag}' not in self.ex.current_run.info:
@@ -35,29 +35,29 @@ class Metrics:
     def reset_states(self):
         self.loss_metric.reset_states()
         self.mean_mae_metric.reset_states()
-        self.mae_metric.reset_states()
+        self.maes_metric.reset_states()
 
     def result(self):
         result_dict = {}
         result_dict[f'loss_{self.tag}'] = self.loss
-        result_dict[f'mean_mae_{self.tag}'] = self.loss
-        result_dict[f'mean_log_mae_{self.tag}'] = self.loss
+        result_dict[f'mean_mae_{self.tag}'] = self.mean_mae
+        result_dict[f'mean_log_mae_{self.tag}'] = self.mean_log_mae
         for i, key in enumerate(self.targets):
-            result_dict[key + '_' + self.tag] = self.mae[i]
+            result_dict[key + '_' + self.tag] = self.maes[i]
         return result_dict
 
     @property
     def loss(self):
-        return self.loss_metric.result()
+        return self.loss_metric.result().numpy().item()
 
     @property
-    def mae(self):
-        return self.mae_metric.result()
+    def maes(self):
+        return self.maes_metric.result().numpy()
 
     @property
     def mean_mae(self):
-        return self.mean_mae_metric.result()
+        return self.mean_mae_metric.result().numpy().item()
 
     @property
     def mean_log_mae(self):
-        return np.mean(np.log(self.mae_metric.result()))
+        return np.mean(np.log(self.maes_metric.result().numpy())).item()
