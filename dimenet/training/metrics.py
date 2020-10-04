@@ -43,7 +43,7 @@ class Metrics:
         result_dict[f'mean_mae_{self.tag}'] = self.mean_mae
         result_dict[f'mean_log_mae_{self.tag}'] = self.mean_log_mae
         for i, key in enumerate(self.targets):
-            result_dict[key + '_' + self.tag] = self.maes[i]
+            result_dict[key + '_' + self.tag] = self.maes[i].item()
         return result_dict
 
     @property
