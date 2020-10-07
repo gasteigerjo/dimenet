@@ -169,9 +169,7 @@ def run(model_name, emb_size, out_emb_size, int_emb_size, basis_emb_size,
             loss_file = np.load(best_loss_file)
             metrics_best = {k: v.item() for k, v in loss_file.items()}
         else:
-            metrics_best = validation['metrics'].result()
-            for key in metrics_best.keys():
-                metrics_best[key] = np.inf
+            metrics_best = {k: np.inf for k in validation['metrics'].keys()}
             metrics_best['step'] = 0
             np.savez(best_loss_file, **metrics_best)
 

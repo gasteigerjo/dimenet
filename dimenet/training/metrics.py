@@ -37,6 +37,11 @@ class Metrics:
         self.mean_mae_metric.reset_states()
         self.maes_metric.reset_states()
 
+    def keys(self):
+        keys = [f'loss_{self.tag}', f'mean_mae_{self.tag}', f'mean_log_mae_{self.tag}']
+        keys.extend([key + '_' + self.tag for key in self.targets])
+        return keys
+
     def result(self):
         result_dict = {}
         result_dict[f'loss_{self.tag}'] = self.loss
@@ -60,4 +65,4 @@ class Metrics:
 
     @property
     def mean_log_mae(self):
-        return np.mean(np.log(self.maes_metric.result().numpy())).item()
+        return np.mean(np.log(self.maes)).item()
