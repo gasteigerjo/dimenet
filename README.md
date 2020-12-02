@@ -11,10 +11,10 @@ Reference implementation of the DimeNet model proposed in the paper:
 by Johannes Klicpera, Janek Groß, Stephan Günnemann   
 Published at ICLR 2020.
 
-As well as its significantly faster successor, DimeNet++:
+As well as DimeNet++, its significantly faster successor:
 
 **[Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules](https://www.daml.in.tum.de/dimenet)**   
-by Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann
+by Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann   
 Published at the ML for Molecules workshop, NeurIPS 2020.
 
 ## Run the code
@@ -62,7 +62,7 @@ tqdm
 Please contact klicpera@in.tum.de if you have any questions.
 
 ## Cite
-Please cite our paper if you use the model or this code in your own work:
+Please cite our papers if you use the model or this code in your own work:
 
 ```
 @inproceedings{klicpera_dimenet_2020,
@@ -71,4 +71,10 @@ Please cite our paper if you use the model or this code in your own work:
   booktitle={International Conference on Learning Representations (ICLR)},
   year = {2020}
 }
+
+@inproceedings{klicpera_dimenetpp_2020,
+title = {Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules},
+author = {Klicpera, Johannes and Giri, Shankari and Margraf, Johannes T. and G{\"u}nnemann, Stephan},
+booktitle={NeurIPS-W},
+year = {2020} }
 ```
