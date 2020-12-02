@@ -11,14 +11,18 @@ Reference implementation of the DimeNet model proposed in the paper:
 by Johannes Klicpera, Janek Groß, Stephan Günnemann   
 Published at ICLR 2020.
 
-As well as its successor, DimeNet++.
+As well as its significantly faster successor, DimeNet++:
+
+**[Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules](https://www.daml.in.tum.de/dimenet)**   
+by Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann
+Published at the ML for Molecules workshop, NeurIPS 2020.
 
 ## Run the code
 This repository contains a notebook for training the model (`train.ipynb`) and for generating predictions on the test set with a trained model (`predict.ipynb`). It also contains a script for training the model on a cluster with Sacred and [SEML](https://github.com/TUM-DAML/seml) (`train_seml.py`). For faster experimentation we also offer two sets of pretrained models, which you can find in the `pretrained` folder.
 
 ## DimeNet++ and TF2
 
-The new DimeNet++ model is both 10x faster and 10% more accurate, so we recommend using this model instead of the original. These improvements have not yet been published in a paper, but feel free to use it anyway (just cite the original paper). DimeNet++ was developed with the help of Shankari Giri.
+The new DimeNet++ model is both 8x faster and 10% more accurate, so we recommend using this model instead of the original.
 
 There are some slight differences between this repository and the original (TF1) DimeNet model, such as slightly different training and initialization in TF2. This implementation uses orthogonal Glorot initialization in the output layer for the targets alpha, R2, U0, U, H, G, and Cv and zero initialization for Mu, HOMO, LUMO, and ZPVE. The paper only used zero initialization for the output layer.
 
