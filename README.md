@@ -58,9 +58,9 @@ tensorflow_addons
 tqdm
 ```
 
-## Known bugs
+## Known issues
 
-Unfortunately there are a few bugs in the code (and paper) that I can't fix without retraining the models. So far, these are:
+Unfortunately there are a few issues/bugs in the code (and paper) that we can't fix without retraining the models. So far, these are:
 - The second distance used for calculating the angles is switched ([DimeNet](https://github.com/klicperajo/dimenet/blob/master/dimenet/model/dimenet.py#L89)).
 - The envelope function is implicitly divided by the distance. This is accounted for in the radial bessel basis layer but leads to an incorrect spherical basis  layer ([DimeNet and DimeNet++](https://github.com/klicperajo/dimenet/blob/master/dimenet/model/layers/envelope.py#L21)).
 - DimeNet was evaluated on MD17's Benzene17 dataset, but compared to sGDML on Benzene18, which gives sGDML an unfair advantage.
