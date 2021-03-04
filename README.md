@@ -65,7 +65,7 @@ Unfortunately there are a few issues/bugs in the code (and paper) that we can't 
 - The envelope function is implicitly divided by the distance. This is accounted for in the radial bessel basis layer but leads to an incorrect spherical basis  layer ([DimeNet and DimeNet++](https://github.com/klicperajo/dimenet/blob/master/dimenet/model/layers/envelope.py#L21)).
 - DimeNet was evaluated on MD17's Benzene17 dataset, but compared to sGDML on Benzene18, which gives sGDML an unfair advantage.
 - In TensorFlow AddOns <0.12 there is a bug when checkpointing. The earlier versions require explicitly passing the `_optimizer` variable of the `MovingAverage` optimizer. This is only relevant if you actually load checkpoints from disk and continue training ([DimeNet and DimeNet++](https://github.com/klicperajo/dimenet/blob/master/train_seml.py#L182)).
-- The radial basis functions in the interaction block actually use d_kj and not d_ji. The best, most efficient way to fix this is by using the RBF after summing up after the SBF ([DimeNet and DimeNet++](https://github.com/klicperajo/dimenet/blob/master/dimenet/model/layers/interaction_pp_block.py#L59)).
+- The radial basis functions in the interaction block actually use d_kj and not d_ji. The best, most efficient way to fix this is by using the RBF after summing up/upprojecting after the SBF ([DimeNet and DimeNet++](https://github.com/klicperajo/dimenet/blob/master/dimenet/model/layers/interaction_pp_block.py#L59)).
 
 ## Contact
 Please contact klicpera@in.tum.de if you have any questions.
