@@ -17,6 +17,8 @@ As well as DimeNet++, its significantly faster successor:
 by Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann   
 Published at the ML for Molecules workshop, NeurIPS 2020.
 
+If you are interested in energy and force predictions, we now recommend our new model, **[GemNet](https://github.com/TUM-DAML/gemnet_pytorch)**.
+
 ## Run the code
 This repository contains a notebook for training the model (`train.ipynb`) and for generating predictions on the test set with a trained model (`predict.ipynb`). It also contains a script for training the model on a cluster with Sacred and [SEML](https://github.com/TUM-DAML/seml) (`train_seml.py`). For faster experimentation we also offer two sets of pretrained models, which you can find in the `pretrained` folder.
 
