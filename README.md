@@ -34,6 +34,11 @@ The following table gives an overview of all MAEs:
 <img src="https://github.com/klicperajo/dimenet/blob/master/results_qm9_tf2_pp.svg?raw=true&sanitize=true">
 </p>
 
+## Other implementations
+
+- [JAX & Haiku](https://github.com/tummfm/jax-dimenet)
+- [PyTorch Geometric](https://github.com/pyg-team/pytorch_geometric/blob/master/torch_geometric/nn/models/dimenet.py)
+
 ## Architecture
 
 ### DimeNet
