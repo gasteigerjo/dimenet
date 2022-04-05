@@ -1,4 +1,4 @@
-DimeNet Copyright 2020 Johannes Klicpera (“Licensor”)
+DimeNet Copyright 2020 Johannes Gasteiger (“Licensor”)
 
 Hippocratic License Version Number: 2.1.
 
