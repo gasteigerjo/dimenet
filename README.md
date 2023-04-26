@@ -7,13 +7,13 @@
 
 Reference implementation of the DimeNet model proposed in the paper:
 
-**[Directional Message Passing for Molecular Graphs](https://www.daml.in.tum.de/dimenet)**   
+**[Directional Message Passing for Molecular Graphs](https://www.cs.cit.tum.de/daml/dimenet)**   
 by Johannes Gasteiger, Janek Groß, Stephan Günnemann   
 Published at ICLR 2020.
 
 As well as DimeNet++, its significantly faster successor:
 
-**[Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules](https://www.daml.in.tum.de/dimenet)**   
+**[Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules](https://www.cs.cit.tum.de/daml/dimenet)**   
 by Johannes Gasteiger, Shankari Giri, Johannes T. Margraf, Stephan Günnemann   
 Published at the ML for Molecules workshop, NeurIPS 2020.
 
