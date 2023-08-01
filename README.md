@@ -31,7 +31,7 @@ The new DimeNet++ model is both 8x faster and 10% more accurate, so we recommend
 
 There are some slight differences between this repository and the original (TF1) DimeNet model, such as slightly different training and initialization in TF2. This implementation uses orthogonal Glorot initialization in the output layer for the targets alpha, R2, U0, U, H, G, and Cv and zero initialization for Mu, HOMO, LUMO, and ZPVE. The paper only used zero initialization for the output layer.
 
-The following table gives an overview of all MAEs:
+The following table gives an overview of all MAEs. Note that the QM9 dataset used here suffers from an off-by-one error (see [#24](https://github.com/gasteigerjo/dimenet/issues/24)).
 
 <p align="left">
 <img src="https://github.com/gasteigerjo/dimenet/blob/master/results_qm9_tf2_pp.svg?raw=true&sanitize=true">
@@ -76,6 +76,7 @@ Unfortunately there are a few issues/bugs in the code (and paper) that we can't 
 - DimeNet was evaluated on MD17's Benzene17 dataset, but compared to sGDML on Benzene18, which gives sGDML an unfair advantage.
 - In TensorFlow AddOns <0.12 there is a bug when checkpointing. The earlier versions require explicitly passing the `_optimizer` variable of the `MovingAverage` optimizer. This is only relevant if you actually load checkpoints from disk and continue training ([DimeNet and DimeNet++](https://github.com/gasteigerjo/dimenet/blob/master/train_seml.py#L182)).
 - The radial basis functions in the interaction block actually use d_kj and not d_ji. The best way to fix this is by just using d_ji instead of d_kj in the SBF and leaving the RBF unchanged ([DimeNet and DimeNet++](https://github.com/gasteigerjo/dimenet/blob/master/dimenet/model/layers/interaction_pp_block.py#L59)).
+- The `qm9_eV.npz` dataset included in this repository and used for the paper filtered out the wrong molecules, due to a off-by-one error (see [#24](https://github.com/gasteigerjo/dimenet/issues/24)).
 
 ## Contact
 Please contact j.gasteiger@in.tum.de if you have any questions.
