@@ -76,6 +76,7 @@ Unfortunately there are a few issues/bugs in the code (and paper) that we can't 
 - DimeNet was evaluated on MD17's Benzene17 dataset, but compared to sGDML on Benzene18, which gives sGDML an unfair advantage.
 - In TensorFlow AddOns <0.12 there is a bug when checkpointing. The earlier versions require explicitly passing the `_optimizer` variable of the `MovingAverage` optimizer. This is only relevant if you actually load checkpoints from disk and continue training ([DimeNet and DimeNet++](https://github.com/gasteigerjo/dimenet/blob/master/train_seml.py#L182)).
 - The radial basis functions in the interaction block actually use d_kj and not d_ji. The best way to fix this is by just using d_ji instead of d_kj in the SBF and leaving the RBF unchanged ([DimeNet and DimeNet++](https://github.com/gasteigerjo/dimenet/blob/master/dimenet/model/layers/interaction_pp_block.py#L59)).
+- The embedding block's RBF layer uses a bias and an activation function. It's supposed to have neither ([DimeNet and DimeNet++](https://github.com/gasteigerjo/dimenet/blob/master/dimenet/model/layers/embedding_block.py#L20-L21)).
 - The `qm9_eV.npz` dataset included in this repository and used for the paper filtered out the wrong molecules, due to a off-by-one error (see [#24](https://github.com/gasteigerjo/dimenet/issues/24)).
 
 ## Contact
